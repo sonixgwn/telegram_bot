@@ -1,4 +1,14 @@
 {
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "A Telegram bot for casino games",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
     "axios": "^1.7.9",
     "body-parser": "^1.20.3",
