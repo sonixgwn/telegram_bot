@@ -5,7 +5,7 @@
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon bot.js"
   },
   "author": "Your Name",
   "license": "MIT",
@@ -14,6 +14,8 @@
     "body-parser": "^1.20.3",
     "express": "^4.21.2",
     "md5": "^2.3.0",
-    "node-telegram-bot-api": "^0.66.0"
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemon": "^3.1.9",
+    "qrcode": "^1.5.4"
   }
 }
