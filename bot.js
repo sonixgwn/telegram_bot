@@ -472,24 +472,6 @@ bot.on("callback_query", async (callbackQuery) => {
         `An error occurred while fetching ${method} options. Please try again later.`
       );
     }
-  } else if (
-    data.startsWith("BANK_") ||
-    data.startsWith("EWALLET_") ||
-    data.startsWith("CRYPTO_")
-  ) {
-    const [method, selectedOption] = data.split("_");
-    const userMethod = userDepositData[chatId]?.method;
-
-    if (userMethod && userMethod.toUpperCase() === method) {
-      userDepositData[chatId].selectedOption = selectedOption;
-
-      bot.sendMessage(
-        chatId,
-        `${selectedOption}. Please enter the amount you want to deposit.`
-      );
-    } else {
-      bot.sendMessage(chatId, "Invalid selection. Please start again.");
-    }
   } else if (data.startsWith("providers_")) {
     const game_category = data.split("_")[1];
     try {
