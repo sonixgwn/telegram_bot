@@ -3,13 +3,7 @@ const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
-
-const telegramToken = "7548403531:AAG1DHdQgZ2mQ1Rv6ci99oYQRFfS-CbYFWM"; // pwcdev_bot
-const apiBaseUrl = "http://localhost:5050";
-const telegramApiUrl = `${apiBaseUrl}/telegram`;
-const master_code = "WINDEV";
-const company_code = "PWCPLAYDEV";
-const API_SECRET = "AbCdEfGh";
+const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 
 const bot = new TelegramBot(telegramToken, { polling: true });
 
