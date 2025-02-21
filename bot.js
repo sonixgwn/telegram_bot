@@ -3,7 +3,8 @@ const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
-const { getSiteSetting, getAccountListing } = require("./api");
+const { registerUser, completeRegistration } = require("./callback/register");
+const { getSiteSetting } = require("./api");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 
 const bot = new TelegramBot(telegramToken, { polling: true });
@@ -12,71 +13,6 @@ const bot = new TelegramBot(telegramToken, { polling: true });
 let userDepositData = {};
 let userRegistrationData = {};
 let userLoginData = {};
-let userRegisterData = {};
-
-const registerUser = async (phone, chat_id) => {
-  console.log(
-    `Registering user with userCode: ${phone} and chatId: ${chat_id}`
-  );
-
-  const r1 = await bot.sendMessage(chat_id, "Please enter your username:", {
-    "reply_markup": {
-        "force_reply": true
-    }
-  });
-
-  userRegistrationData[chat_id] = r1.message_id;
-
-  bot.onReplyToMessage(chat_id, r1.message_id, async (msg1) => {
-    if (msg1.reply_to_message.message_id !== r1.message_id) return;
-
-    const username = msg1.text;
-    console.log(`Received username: ${username}`);
-
-    const r2 = await bot.sendMessage(chat_id, "Please enter your Password:", {
-      "reply_markup": {
-          "force_reply": true
-      }
-    });
-
-    userRegistrationData[chat_id] = r2.message_id;
-
-    bot.onReplyToMessage(chat_id, r2.message_id, async (msg2) => {
-      if (msg2.reply_to_message.message_id !== r2.message_id) return;
-
-      const password = msg2.text;
-      console.log(`Received password: ${password}`);
-
-      const banks = await getAccountListing();
-
-      if (banks) {
-        userRegisterData[chat_id] = { username, password, phone, chat_id };
-         // Buat keyboard dengan 1 baris, 2 kolom
-        const bankButtons = [];
-        for (let i = 0; i < banks.length; i += 2) {
-          const row = [];
-          row.push({
-            text: banks[i].label,
-            callback_data: `register_${banks[i].label}`,
-          });
-          if (banks[i + 1]) {
-            row.push({
-              text: banks[i + 1].label,
-              callback_data: `register_${banks[i + 1].label}`,
-            });
-          }
-          bankButtons.push(row);
-        }
-
-        bot.sendMessage(chat_id, `Please Choose Your Bank:`, {
-          reply_markup: { inline_keyboard: bankButtons },
-        });
-      } else {
-        bot.sendMessage(chat_id, "No banks available at the moment.");
-      }
-    });
-  });
-};
 
 const checkUserExist = async (chatId, password=null) => {
   const response = await axios.post(`${telegramApiUrl}`, {
@@ -971,78 +907,8 @@ bot.on("callback_query", async (callbackQuery) => {
       });
     bot.answerCallbackQuery(callbackQuery.id);
   } else if (data.startsWith("register_")) {
-    const checkUser = await checkUserExist(chatId);
-
-    if (checkUser) {
-      bot.sendMessage(chatId, "You are already registered.");
-      return;
-    }
-
-    const [_, bankLabel] = data.split("_");
-    console.log(`Received bank: ${bankLabel}`);
-
-    const r3 = await bot.sendMessage(chatId, "Please enter Account Number:", {
-      "reply_markup": {
-          "force_reply": true
-      }
-    });
-    userRegistrationData[chatId] = r3.message_id;
-
-    bot.onReplyToMessage(chatId, r3.message_id, async (msg4) => {
-      if (msg4.reply_to_message.message_id !== r3.message_id) return;
-
-      const accNumber = msg4.text;
-      console.log(`received Account Number: ${accNumber}`);
-
-      const r4 = await bot.sendMessage(chatId, "Please enter Account Name:", {
-        "reply_markup": {
-            "force_reply": true
-        }
-      });
-      userRegistrationData[chatId] = r4.message_id;
-  
-      bot.onReplyToMessage(chatId, r4.message_id, async (msg5) => {
-        const accName = msg5.text;
-        console.log(`received Account Name: ${accName}`);
-
-        const { username, password, phone } = userRegisterData[chatId];
-
-        try {
-          const data = await axios.post(telegramApiUrl, {
-            method: "user_create",
-            master_code,
-            company_code,
-            chat_id: chatId,
-            data: {
-              username,
-              password,
-              email: `${chatId}@placeholder.com`,
-              phone,
-              bank: bankLabel,
-              accNumber,
-              accName,
-              country: "ID",
-            },
-          }, {
-            headers: {
-              "x-endpoint-secret": API_SECRET,
-            },
-          });
-  
-          bot.sendMessage(chatId, data.data.msg);
-          console.log(`Registering user with username: ${username}, password: ${password}, phone: ${phone}, bank: ${bankLabel}, accNumber: ${accNumber}, accName: ${accName}`);
-          bot.sendMessage(chatId, "Registration completed successfully.");
-        } catch (error) {
-          console.error("Error registering user:", error.message);
-          bot.sendMessage(chatId, "Failed to register user. Please try again later.");
-        }
-        
-        delete userRegistrationData[chatId];
-        delete userRegisterData[chatId];
-
-        showMenu(chatId, password);
-      });
-    });
+    const bankLabel = data.split("_")[1];
+    completeRegistration(bot, chatId, bankLabel);
   }
 });
 
@@ -1050,7 +916,7 @@ bot.on("contact", (msg) => {
   const chatId = msg.chat.id;
   const phoneNumber = msg.contact.phone_number;
 
-  registerUser(phoneNumber, chatId);
+  registerUser(bot, phoneNumber, chatId);
 });
 
 console.log("Bot is running...");
