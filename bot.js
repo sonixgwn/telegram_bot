@@ -878,34 +878,6 @@ bot.on("callback_query", async (callbackQuery) => {
     }
 
     bot.answerCallbackQuery(callbackQuery.id);
-  } else if (data === "personal_info") {
-    const userCode = chatId.toString();
-    axios
-      .get(`http://localhost:3000/userinfo?user_code=${userCode}`)
-      .then((response) => {
-        const user = response.data.user;
-        bot.sendMessage(
-          chatId,
-          `
-          *Personal Info for ${user.user_code}*:
-          - *User Code:* ${user.user_code}
-          - *Balance:* ${user.balance}
-          - *Address:* ${user.alamat || "Not set"}
-          - *Email:* ${user.email || "Not set"}
-          - *Bank:* ${user.bank || "Not set"}
-          - *Rekening:* ${user.rekening || "Not set"}
-        `,
-          { parse_mode: "Markdown" }
-        );
-      })
-      .catch((error) => {
-        bot.sendMessage(
-          chatId,
-          "There was an error retrieving your personal information. Please try again later."
-        );
-        console.error(error);
-      });
-    bot.answerCallbackQuery(callbackQuery.id);
   } else if (data.startsWith("register_")) {
     const bankLabel = data.split("_")[1];
     completeRegistration(bot, chatId, bankLabel);
