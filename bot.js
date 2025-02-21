@@ -3,6 +3,7 @@ const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
+const { getSiteSetting, getAccountListing } = require("./api");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 
 const bot = new TelegramBot(telegramToken, { polling: true });
@@ -12,42 +13,6 @@ let userDepositData = {};
 let userRegistrationData = {};
 let userLoginData = {};
 let userRegisterData = {};
-let siteSetting = {};
-
-const getSiteSetting = async (chat_id) => {
-  const response = await axios.post(telegramApiUrl,{
-    method: "settings",
-    chat_id,
-    company_code: company_code,
-  }, {
-    headers: {
-      "x-endpoint-secret": API_SECRET,
-    },
-  });
-
-  if (response.data.status === 1) {
-    siteSetting = response.data.data;
-  } else {
-    bot.sendMessage(chatId, response.data.msg);
-  }
-};
-
-const getAccountListing = async () => {
-  const response = await axios.get(`${apiBaseUrl}/getAccount_Listing`, {
-    headers: {
-      "x-endpoint-secret": API_SECRET,
-    },
-  });
-
-  if (response.data.status === 1) {
-    return response.data.data.map((account) => ({
-      id: account.id,
-      label: account.label,
-    }));
-  } else {
-    return null;
-  }
-};
 
 const registerUser = async (phone, chat_id) => {
   console.log(
@@ -209,26 +174,26 @@ const showMenu = async (chatId, password = null) => {
   }
 };
 
-const getSupportMarkup = async () => {
+const getSupportMarkup = async (lc, wa, te) => {
   return {
     reply_markup: {
       inline_keyboard: [
         [
           {
             text: "Livechat",
-            url: siteSetting.livechat,
+            url: lc,
           },
         ],
         [
           {
             text: "Whatsapp",
-            url: `https://wa.me/${siteSetting.whatsapp}`,
+            url: `https://wa.me/${wa}`,
           },
         ],
         [
           {
             text: "Telegram",
-            url: `https://t.me/${siteSetting.telegram}`,
+            url: `https://t.me/${te}`,
           },
         ]
       ],
@@ -271,9 +236,8 @@ bot.onText(/\/menu/, async (msg) => {
 
 bot.onText(/\/chat/, async (msg) => {
   const chatId = msg.chat.id;
-  await getSiteSetting(chatId);
-
-  bot.sendMessage(chatId, "Hubungi Admin Super Ramah kami dibawah ini:", await getSupportMarkup());
+  ss = await getSiteSetting(chatId);
+  bot.sendMessage(chatId, "Hubungi Admin Super Ramah kami dibawah ini:", await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram));
 });
 
 bot.on("message", async (msg) => {
@@ -307,6 +271,7 @@ bot.on("message", async (msg) => {
     const user = await checkUserExist(chatId);
     if (user) {
       if (user.status !== 1) return;
+      ss = await getSiteSetting(chatId);
       bot.sendMessage(
         chatId,
         `Your profile details:
@@ -318,7 +283,7 @@ bot.on("message", async (msg) => {
         Hubungi support jika Anda memerlukan bantuan.
         `,
         { parse_mode: "Markdown",
-          ...await getSupportMarkup()
+          ...await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram)
          }
       );
     } else {
@@ -508,7 +473,7 @@ bot.on("callback_query", async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
 
-  await getSiteSetting(chatId);
+  // await getSiteSetting(chatId);
 
   console.log(`Received callback data: ${data} - ${chatId}`);
 
