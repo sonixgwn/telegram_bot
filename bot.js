@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 const { registerUser, completeRegistration } = require("./callback/register");
+const { handleDepositSelection, processDepositAmount } = require("./callback/deposit");
+
 const { getSiteSetting } = require("./api");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 
@@ -316,93 +318,7 @@ bot.on("message", async (msg) => {
     showMenu(chatId);
   }
 
-  if (userDepositData[chatId] && !isNaN(text)) {
-    const amount = parseFloat(text);
-    const { method, bankMember, bonus_id, payment_category_id, img, bank_penerima, nama_penerima, nomer_penerima } = userDepositData[chatId];
-    
-    const user = await checkUserExist(chatId);
-
-    try {
-      const response = await axios.post(`${apiBaseUrl}/transaksi`, {
-        user_id: user.id,
-        accName: user.accName,
-        accNumber: user.accNumber,
-        bankMember: '',
-        bonus_id,
-        company_code: user.company_code,
-        payment_category_id,
-        amount,
-        img,
-        type: 1,
-        bank_penerima,
-        nama_penerima,
-        nomer_penerima,
-        platform: 'telegram',
-
-      }, {
-        headers: {
-          "x-endpoint-secret": API_SECRET,
-        },
-      });
-      const resData = response.data;
-      if (resData.status === 1) {
-        const filePath = path.join(__dirname, `temp/${chatId}.png`);
-        if (!fs.existsSync(path.dirname(filePath))) {
-          fs.mkdirSync(path.dirname(filePath), { recursive: true });
-        }
-
-        await QRCode.toFile(filePath, resData.qris_data, {
-          type: 'png',
-          errorCorrectionLevel: 'H'
-        }, function (err) {
-          if (err) throw err;
-
-          bot.sendPhoto(chatId, filePath, {
-            caption: `Deposit of ${amount} via ${method} has been recorded successfully. QRIS only active for 5 minutes.`,
-            parse_mode: "HTML",
-          });
-
-          fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error(`Error deleting file: ${err.message}`);
-          } else {
-            console.log(`File ${filePath} deleted successfully.`);
-          }
-          });
-        })
-      } else {
-        bot.sendMessage(chatId, `Deposit failed: ${resData.msg}`);
-      }
-    } catch (error) {
-      console.error('Error while calling deposit API:', error.message);
-      if (error.response && error.response.data && error.response.data.status === 0) {
-        bot.sendMessage(chatId, `Deposit failed: ${error.response.data.msg}`);
-      } else {
-        bot.sendMessage(chatId, 'An error occurred while processing your deposit. Please try again later.');
-      }
-    }
-    delete userDepositData[chatId];
-  } else if (userDepositData[chatId] && isNaN(text)) {
-    bot.sendMessage(chatId, 'Please enter a valid amount (number).');
-  }
-
-  if (userRegistrationData[chatId] && (!msg.reply_to_message || userRegistrationData[chatId] !== msg.reply_to_message?.message_id)) {
-    bot.sendMessage(chatId, 'Registration Cancelled.');
-    delete userRegistrationData[chatId];
-    
-    bot.deleteMessage(chatId, msg.message_id);
-  } else if (userRegistrationData[chatId]) {
-    bot.deleteMessage(chatId, msg.message_id);
-  }
-
-  if (userLoginData[chatId] && (!msg.reply_to_message || userLoginData[chatId] !== msg.reply_to_message?.message_id)) {
-    bot.sendMessage(chatId, 'Login Cancelled.');
-    delete userLoginData[chatId];
-
-    bot.deleteMessage(chatId, msg.message_id);
-  } else if (userLoginData[chatId]) {
-    bot.deleteMessage(chatId, msg.message_id);
-  }
+  await processDepositAmount(bot, chatId, text, checkUserExist);
 });
 
 bot.on("callback_query", async (callbackQuery) => {
@@ -428,50 +344,8 @@ bot.on("callback_query", async (callbackQuery) => {
     bot.sendMessage(chatId, "💳 Choose your deposit method:", {
       reply_markup: { inline_keyboard: depositMethodsKeyboard },
     });
-  } else if (
-    data === "deposit_qris" ||
-    data === "deposit_bank" ||
-    data === "deposit_ewallet" ||
-    data === "deposit_pulsa"
-  ) {
-    let method = "";
-    if (data === "deposit_qris") {
-      method = "QRIS";
-      payment_category_id = 4;
-      bot.sendMessage(
-        chatId,
-        `You selected ${method}. Please enter the amount you want to deposit.`
-      );
-      userDepositData[chatId] = { method, payment_category_id };
-    } else if (data === "deposit_bank") {
-      method = "BANK";
-      payment_category_id = 1;
-    } else if (data === "deposit_ewallet") {
-      method = "EWALLET";
-      payment_category_id = 2;
-    } else if (data === "deposit_pulsa") {
-      method = "PULSA";
-      payment_category_id = 3;
-    }
-    if (method === "QRIS") return;
-    try {
-      bot.sendMessage(chatId, 
-        `
-        Berikut Contoh Deposit untuk ${method}:
-
-        Bank: <code>BCA</code>
-        Nama: <code>PT. PWCPLAY DEV</code>
-        Account: <code>1234567890</code>
-        `, {
-          parse_mode: 'HTML'
-        })
-    } catch (error) {
-      console.error(`Error fetching ${method} list:`, error.message);
-      bot.sendMessage(
-        chatId,
-        `An error occurred while fetching ${method} options. Please try again later.`
-      );
-    }
+  }  else if (data.startsWith("deposit_")) {
+    handleDepositSelection(bot, chatId, data);
   } else if (data.startsWith("providers_")) {
     const game_category = data.split("_")[1];
     try {
