@@ -12,8 +12,6 @@ const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, AP
 const bot = new TelegramBot(telegramToken, { polling: true });
 
 // MEMORY STORAGE
-let userDepositData = {};
-let userRegistrationData = {};
 let userLoginData = {};
 
 const checkUserExist = async (chatId, password=null) => {
