@@ -3,8 +3,8 @@ const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
-const { registerUser, completeRegistration } = require("./callback/register");
-const { handleDepositSelection, processDepositAmount } = require("./callback/deposit");
+const { registerUser, completeRegistration, } = require("./callback/register");
+const { handleDepositSelection, processBankDeposit, handleDepositAmount } = require("./callback/deposit");
 
 const { getSiteSetting } = require("./api");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
@@ -318,7 +318,8 @@ bot.on("message", async (msg) => {
     showMenu(chatId);
   }
 
-  await processDepositAmount(bot, chatId, text, checkUserExist);
+  
+  await handleDepositAmount(bot, chatId, text, checkUserExist);
 });
 
 bot.on("callback_query", async (callbackQuery) => {
@@ -344,8 +345,11 @@ bot.on("callback_query", async (callbackQuery) => {
     bot.sendMessage(chatId, "💳 Choose your deposit method:", {
       reply_markup: { inline_keyboard: depositMethodsKeyboard },
     });
-  }  else if (data.startsWith("deposit_")) {
+  } else if (data.startsWith("deposit_")) {
     handleDepositSelection(bot, chatId, data);
+  } else if (data.startsWith("bank_selected-")) {
+    const bankData = data.split("bank_selected-")[1]; // Extract bank details
+    processBankDeposit(bot, chatId, bankData, checkUserExist);
   } else if (data.startsWith("providers_")) {
     const game_category = data.split("_")[1];
     try {
