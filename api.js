@@ -92,7 +92,7 @@ const checkUserExist = async (chatId, password=null) => {
 
   if (password !== null) {
     bot.sendMessage(chatId, 'Login Successful.');
-    showMenu(chatId);
+    // showMenu(chatId);
   }
 
   if (data.status === 1 && !data.data) return null;

@@ -6,7 +6,7 @@ async function showMenu(chatId, password = null) {
     const user = await checkUserExist(chatId, password);
 
     let keyboard;
-
+    if (user.status !== 1) return;
     if (user && user.status === 1) {
       keyboard = [
         [{ text: "🎮 Games" }, { text: "👤 Profile" }],
@@ -21,12 +21,12 @@ async function showMenu(chatId, password = null) {
       ];
     }
 
-    // bot.sendMessage(chatId, "Silakan pilih opsi berikut:", {
-    //   reply_markup: {
-    //     keyboard,
-    //     resize_keyboard: true,
-    //   },
-    // });
+    bot.sendMessage(chatId, "Silakan pilih opsi berikut:", {
+      reply_markup: {
+        keyboard,
+        resize_keyboard: true,
+      },
+    });
   } catch (error) {
     console.error("Error fetching menu:", error.message);
     bot.sendMessage(chatId, "Failed to fetch data. Please try again later.");
