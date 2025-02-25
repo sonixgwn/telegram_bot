@@ -21,12 +21,12 @@ async function showMenu(chatId, password = null) {
       ];
     }
 
-    bot.sendMessage(chatId, "Silakan pilih opsi berikut:", {
-      reply_markup: {
-        keyboard,
-        resize_keyboard: true,
-      },
-    });
+    // bot.sendMessage(chatId, "Silakan pilih opsi berikut:", {
+    //   reply_markup: {
+    //     keyboard,
+    //     resize_keyboard: true,
+    //   },
+    // });
   } catch (error) {
     console.error("Error fetching menu:", error.message);
     bot.sendMessage(chatId, "Failed to fetch data. Please try again later.");

@@ -6,46 +6,25 @@ const { apiBaseUrl, API_SECRET } = require("../config");
 
 let userDepositData = {};
 
+const depositMethods = {
+  deposit_qris: { method: "QRIS", payment_category_id: 4 },
+  deposit_bank: { method: "BANK", payment_category_id: 1 },
+  deposit_ewallet: { method: "EWALLET", payment_category_id: 2 },
+  deposit_pulsa: { method: "PULSA", payment_category_id: 3 },
+};
+
 /**
  * Handle deposit method selection
  */
 const handleDepositSelection = async (bot, chatId, data) => {
-  let method = "";
-  let payment_category_id = null;
+  const depositInfo = depositMethods[data];
 
-  if (data === "deposit_qris") {
-    method = "QRIS";
-    payment_category_id = 4;
-  } else if (data === "deposit_bank") {
-    method = "BANK";
-    payment_category_id = 1;
-  } else if (data === "deposit_ewallet") {
-    method = "EWALLET";
-    payment_category_id = 2;
-  } else if (data === "deposit_pulsa") {
-    method = "PULSA";
-    payment_category_id = 3;
+  if (depositInfo) {
+    bot.sendMessage(chatId, `You selected ${depositInfo.method}. Please enter the amount you want to deposit.`);
+    userDepositData[chatId] = depositInfo;
+  } else {
+    bot.sendMessage(chatId, "Invalid deposit method selected. Please try again.");
   }
-
-  if (method === "QRIS") {
-    bot.sendMessage(chatId, `You selected ${method}. Please enter the amount you want to deposit.`);
-    userDepositData[chatId] = { method, payment_category_id };
-    return;
-  }else if (method === "BANK") {
-    bot.sendMessage(chatId, `You selected ${method}. Please enter the amount you want to deposit.`);
-    userDepositData[chatId] = { method, payment_category_id };
-    return;
-  }
-
-  bot.sendMessage(chatId, 
-    `Berikut Contoh Deposit untuk ${method}:
-    
-    Bank: <code>BCA</code>
-    Nama: <code>PT. PWCPLAY DEV</code>
-    Account: <code>1234567890</code>
-    `, 
-    { parse_mode: "HTML" }
-  );
 };
 const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
   if (!userDepositData[chatId]) return; // Ignore if no deposit method was selected
