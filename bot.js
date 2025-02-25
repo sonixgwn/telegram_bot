@@ -4,37 +4,17 @@ const path = require('path');
 const QRCode = require('qrcode');
 const { registerUser, completeRegistration, } = require("./callback/register");
 const { handleDepositSelection, processBankDeposit, handleDepositAmount } = require("./callback/deposit");
+const handleGames = require("./handlers/gamesHandler");
+const handleProfile = require("./handlers/profileHandler");
+const handleBalance = require("./handlers/balanceHandler");
+const handleRegistration = require("./handlers/registrationHandler");
+const showMenu = require("./handlers/menuHandler");
 
-const { getSiteSetting, userLogin, checkUserExist, showMenu } = require("./api");
+const { getSupportMarkup } = require("./utils/supportUtils");
+
+const { getSiteSetting, checkUserExist } = require("./api");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 const bot = require("./botInstance"); // Import shared bot instance
-
-const getSupportMarkup = async (lc, wa, te) => {
-  return {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "Livechat",
-            url: lc,
-          },
-        ],
-        [
-          {
-            text: "Whatsapp",
-            url: `https://wa.me/${wa}`,
-          },
-        ],
-        [
-          {
-            text: "Telegram",
-            url: `https://t.me/${te}`,
-          },
-        ]
-      ],
-    },
-  }
-}
 
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
@@ -74,7 +54,14 @@ bot.onText(/\/chat/, async (msg) => {
   ss = await getSiteSetting(chatId);
   bot.sendMessage(chatId, "Hubungi Admin Super Ramah kami dibawah ini:", await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram));
 });
-
+const commandHandlers = {
+  "🎮 Games": handleGames,
+  "👤 Profile": handleProfile,
+  "🏦 Balance": handleBalance,
+  "📝 Registration": handleRegistration,
+  // "ℹ️ Information": handleInformation,
+  // "⬅️ Back": (chatId) => showMenu(chatId),
+};
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
@@ -82,140 +69,11 @@ bot.on("message", async (msg) => {
   console.log(`User sent message: ${text}`);
 
   await getSiteSetting(chatId);
-
-  if (text === "🎮 Games") {
-    const gamesKeyboard = [
-      [
-        { text: "🎰 Slots", callback_data: "providers_slots" },
-        { text: "🎲 Live Casino", callback_data: "categories_LC_Casino" },
-      ],
-      [
-        { text: "⚽ Sports", callback_data: "categories_SB_SportsBook" },
-        { text: "🕹️ Arcade", callback_data: "providers_arcade" },
-      ],
-      [
-        { text: "🐔 Sabung Ayam", callback_data: "categories_LG_SeamlessGame" },
-      ],
-      // [{ text: "🔍 Search", callback_data: "search" }],
-    ];
-
-    bot.sendMessage(chatId, "Select Game Category:", {
-      reply_markup: { inline_keyboard: gamesKeyboard },
-    });
-  } else if (text === "👤 Profile") {
-    const user = await checkUserExist(chatId);
-    if (user) {
-      if (user.status !== 1) return;
-      ss = await getSiteSetting(chatId);
-      bot.sendMessage(
-        chatId,
-        `Your profile details:
-        - *Username:* ${user.username}
-        - *Mata Uang:* IDR
-        - *Bank:* ${user.bank}
-        - *Rekening:* ${user.accNumber}
-
-        Hubungi support jika Anda memerlukan bantuan.
-        `,
-        { parse_mode: "Markdown",
-          ...await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram)
-         }
-      );
-    } else {
-      bot.sendMessage(chatId, "You are not registered. Please register first.");
-    }
-  } else if (text === "🏦 Balance") {
-    const user = await checkUserExist(chatId);
-    if (user) {
-      if (user.status !== 1) return;
-      const balance = user.saldo;
-      
-      const msgB = await bot.sendMessage(
-        chatId,
-        `Your current balance is IDR <span class="tg-spoiler">${balance}</span>. Choose an option:
-        Message will be deleted in 20 seconds.`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "➕ Deposit to Account",
-                  callback_data: "deposit_to_account",
-                },
-              ],
-              [
-                {
-                  text: "➖ Withdraw Funds",
-                  callback_data: "withdraw_funds",
-                },
-              ],
-            ],
-          },
-          parse_mode: "HTML",
-        }
-      );
-      setTimeout(() => {
-        bot.deleteMessage(chatId, msgB.message_id);
-      }, 20000);
-    } else {
-      // Jika tidak ada user_code yang terkait dengan chatId, beri tahu pengguna untuk menghubungi admin
-      bot.sendMessage(
-        chatId,
-        "Your user information is not found. Please contact support."
-      );
-    }
-  } else if (text === "🎁 Bonuses") {
-    const bonusesKeyboard = [
-      [
-        { text: "✅ Active", callback_data: "active" },
-        { text: "🆓 Available", callback_data: "available" },
-      ],
-      [
-        {
-          text: "📜 Transaction History",
-          callback_data: "transaction_history",
-        },
-      ],
-    ];
-
-    bot.sendMessage(chatId, "Choose an option:", {
-      reply_markup: { inline_keyboard: bonusesKeyboard },
-    });
-  } else if (text === "ℹ️ Information") {
-    bot.sendMessage(
-      chatId,
-      `
-      <b>ℹ️ Information</b>
-      Gunakan bot ini untuk bermain game terbaik, melakukan deposit, dan banyak lagi.  
-      Hubungi support jika Anda memerlukan bantuan.
-    `,
-      { parse_mode: "HTML" }
-    );
-  } else if (text === "📝 Registration") {
-    bot.sendMessage(
-      chatId,
-      `
-      To complete the registration share your phone number by clicking on the "Share phone number" button. 
-      (If this button is not available, click on the ⚃ icon in the lower right corner of the screen).
-
-      For privacy, we will be deleting all your information during the registration process.
-    `,
-      {
-        reply_markup: {
-          keyboard: [
-            [{ text: "Share phone number", request_contact: true }],
-            [{ text: "⬅️ Back", callback_data: "continue" }],
-          ],
-          one_time_keyboard: true,
-          resize_keyboard: true,
-        },
-      }
-    );
-  } else if (text === "⬅️ Back") {
-    showMenu(chatId);
+  if (commandHandlers[text]) {
+    await commandHandlers[text](chatId);
+  } else {
+    console.log(`Unknown command: ${text}`);
   }
-
-  
   await handleDepositAmount(bot, chatId, text, checkUserExist);
 });
 
