@@ -9,6 +9,7 @@ const handleProfile = require("./handlers/profileHandler");
 const handleBalance = require("./handlers/balanceHandler");
 const handleRegistration = require("./handlers/registrationHandler");
 const handleCallbackQuery = require("./handlers/callbackHandlers");
+const handleBonuses = require("./handlers/bonusesHandler");
 
 const showMenu = require("./handlers/menuHandler");
 
@@ -61,6 +62,7 @@ const commandHandlers = {
   "👤 Profile": handleProfile,
   "🏦 Balance": handleBalance,
   "📝 Registration": handleRegistration,
+  "🎁 Bonuses": handleBonuses,
   // "ℹ️ Information": handleInformation,
   // "⬅️ Back": (chatId) => showMenu(chatId),
 };

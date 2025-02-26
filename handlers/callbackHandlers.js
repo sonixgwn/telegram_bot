@@ -1,12 +1,23 @@
 const axios = require("axios");
 const  showMenu = require("./menuHandler");
-const { handleDepositSelection, processBankDeposit } = require("../callback/deposit");
+const { handleDepositSelection, processBankDeposit, handleBonusSelectionCallback } = require("../callback/deposit");
 const { checkUserExist } = require("../api");
 const bot = require("../botInstance"); // Ensure correct import
 const { API_SECRET, apiBaseUrl, telegramApiUrl } = require("../config");
 const completeRegistration = require("../callback/register");
 
 const callbackHandlers = {
+    bonus_selected: async (chatId, data) => {
+        // data might be "bonus_selected-27" etc.
+        // We'll just pass the entire string to handleBonusSelectionCallback
+        await handleBonusSelectionCallback(bot, chatId, data, checkUserExist);
+      },
+    
+      // Optionally, handle skip_bonus as well, 
+      // if you have "Skip Bonus" callback_data: "skip_bonus"
+      skip_bonus: async (chatId, data) => {
+        await handleBonusSelectionCallback(bot, chatId, data, checkUserExist);
+      },
     continue: async (chatId) => showMenu(chatId),
 
     deposit_to_account: async (chatId) => {
