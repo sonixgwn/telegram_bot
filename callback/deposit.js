@@ -40,7 +40,7 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
 
   if (method === "QRIS") {
     await processDepositQRISAmount(bot, chatId, text, checkUserExist); // Directly process QRIS deposit
-  } else if (method === "BANK") {
+  } else if (method === "BANK" || method === "EWALLET" || method === "PULSA") {
     try {
       const response = await axios.get(`${apiBaseUrl}/getBanks`, {
         headers: { "x-endpoint-secret": API_SECRET },
@@ -56,24 +56,30 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
         return;
       }
 
-      // Generate inline keyboard buttons for each bank
+      // Filter banks based on selected payment_category_id
+      const filteredBanks = banks.filter(bank => bank.payment_category_id === payment_category_id);
+
+      if (filteredBanks.length === 0) {
+        bot.sendMessage(chatId, "No available payment methods for your selection.");
+        return;
+      }
+
+      // Generate inline keyboard buttons for each available option
       const bankOptions = {
         reply_markup: {
-          inline_keyboard: banks
-            .filter(bank => bank.payment_category_id === 1) // ✅ Filter banks
-            .map(bank => [
-              {
-                text: `${bank.nama_bank} - ${bank.nama_penerima}`,
-                callback_data: `bank_selected-${bank.no_rek}-${bank.nama_bank}-${bank.nama_penerima}`,
-              }
-            ]),
+          inline_keyboard: filteredBanks.map(bank => [
+            {
+              text: `${bank.nama_bank} - ${bank.nama_penerima}`,
+              callback_data: `bank_selected-${bank.no_rek}-${bank.nama_bank}-${bank.nama_penerima}`,
+            }
+          ]),
         },
-      };   
+      };
 
-      bot.sendMessage(chatId, `Anda memasukkan jumlah: ${amount}\nSilakan pilih bank untuk deposit:`, bankOptions);
+      bot.sendMessage(chatId, `Anda memasukkan jumlah: ${amount}\nSilakan pilih metode pembayaran:`, bankOptions);
     } catch (error) {
       console.error("Error fetching bank details:", error.message);
-      bot.sendMessage(chatId, "Failed to retrieve bank details. Please try again later.");
+      bot.sendMessage(chatId, "Failed to retrieve payment details. Please try again later.");
     }
   }
 };
@@ -176,7 +182,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
       payment_category_id,
       amount,
       type: 1,
-      platform: "telegram",
+      notes: "telegram",
       bankMember: `${user.bank}|${user.accNumber}`,
       bank_penerima: bankName,
       nama_penerima: recipientName,
@@ -189,7 +195,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
     const response = await axios.post(`${apiBaseUrl}/transaksi`, requestData, {
       headers: { "x-endpoint-secret": API_SECRET },
       validateStatus: function (status) {
-        return status === 200 || status === 400; // Accept 400 responses too
+        return status === 200 || status === 400 || status === 201; // Accept 400 responses too
       },
     });
 
