@@ -22,7 +22,6 @@ const handleDepositSelection = async (bot, chatId, data) => {
   const depositInfo = depositMethods[data];
 
   if (depositInfo) {
-    // Store selected deposit method in session data
     userDepositData[chatId] = {
       method: depositInfo.method,
       payment_category_id: String(depositInfo.payment_category_id),
@@ -50,11 +49,8 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
     bot.sendMessage(chatId, "Please enter a valid amount (number).");
     return;
   }
-
   const amount = parseFloat(text);
   userDepositData[chatId].amount = amount;
-
-  // Now fetch and show bonus options (matched to the user’s payment category)
   await showBonusOptions(bot, chatId);
 };
 
@@ -83,7 +79,6 @@ const showBonusOptions = async (bot, chatId) => {
         chatId,
         "No relevant bonuses available for your selected payment method. Proceeding without bonus..."
       );
-      // proceed to next step
       return proceedAfterBonusSelection(bot, chatId);
     }
 
@@ -133,7 +128,6 @@ const showBonusOptions = async (bot, chatId) => {
       chatId,
       "Failed to retrieve bonus. Proceeding without bonus..."
     );
-    // If there's an error, proceed without bonus
     proceedAfterBonusSelection(bot, chatId);
   }
 };
@@ -163,8 +157,6 @@ const handleBonusSelectionCallback = async (
   }
 
   userDepositData[chatId].bonusId = selectedBonusId ? String(selectedBonusId) : null;
-
-  // Proceed with the next step in deposit flow
   proceedAfterBonusSelection(bot, chatId, checkUserExist);
 };
 
@@ -189,7 +181,6 @@ const proceedAfterBonusSelection = async (bot, chatId, checkUserExist) => {
       checkUserExist
     );
   } else if (method === "BANK" || method === "EWALLET" || method === "PULSA") {
-    // Ask user to pick bank from the list
     await promptBankSelection(bot, chatId);
   }
 };
@@ -218,7 +209,6 @@ const promptBankSelection = async (bot, chatId) => {
       return;
     }
 
-    // Filter banks based on selected payment_category_id
     const filteredBanks = banks.filter(
       (bank) => String(bank.payment_category_id) === String(payment_category_id)
     );
@@ -231,7 +221,6 @@ const promptBankSelection = async (bot, chatId) => {
       return;
     }
 
-    // Generate inline keyboard buttons for each option
     const bankOptions = {
       reply_markup: {
         inline_keyboard: filteredBanks.map((bank) => [
@@ -273,7 +262,6 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
   }
 
   try {
-    // Submit deposit transaction with `bonusId`
     const response = await axios.post(
       `${apiBaseUrl}/transaksi`,
       {
@@ -281,11 +269,11 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
         accName: user.accName,
         accNumber: user.accNumber,
         company_code: user.company_code,
-        payment_category_id: payment_category_id || null, // already a string
+        payment_category_id: payment_category_id || null,
         amount,
         type: 1,
         platform: "telegram",
-        bonus_id: bonusId || null, // <--- Pass the selected bonus ID here
+        bonus_id: bonusId || null, 
       },
       {
         headers: { "x-endpoint-secret": API_SECRET },
@@ -299,19 +287,16 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
-      // Generate QR code file
       await QRCode.toFile(filePath, resData.qris_data, {
         type: "png",
         errorCorrectionLevel: "H",
       });
 
-      // Send the QR image to the user
       bot.sendPhoto(chatId, filePath, {
         caption: `Deposit of ${amount} via QRIS has been recorded successfully.\nQRIS is only active for 5 minutes.`,
         parse_mode: "HTML",
       });
 
-      // Clean up the QR image after sending
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error(`Error deleting file: ${err.message}`);
@@ -334,7 +319,6 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
     }
   }
 
-  // Clean up data after deposit process
   delete userDepositData[chatId];
 };
 
@@ -367,13 +351,12 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   }
 
   try {
-    // Include bonus_id in the transaction payload
     const requestData = {
       user_id: user.id,
       accName: user.accName,
       accNumber: user.accNumber,
       company_code: user.company_code,
-      payment_category_id: payment_category_id || null, // string
+      payment_category_id: payment_category_id || null, 
       amount,
       type: 1,
       notes: "telegram",
@@ -381,7 +364,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
       bank_penerima: bankName,
       nama_penerima: recipientName,
       nomer_penerima: accountNumber,
-      bonus_id: bonusId || null, // string
+      bonus_id: bonusId || null, 
     };
 
     console.log("📡 Sending Deposit Request:", requestData);
@@ -425,8 +408,6 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
       );
     }
   }
-
-  // Clean up the user's deposit session
   delete userDepositData[chatId];
 };
 
