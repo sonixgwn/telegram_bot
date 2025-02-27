@@ -4,8 +4,10 @@ const path = require("path");
 const QRCode = require("qrcode");
 const { apiBaseUrl, API_SECRET } = require("../config");
 
+// In-memory storage for deposit flows per chatId
 let userDepositData = {};
 
+// Define your deposit methods along with their payment_category_ids
 const depositMethods = {
   deposit_qris: { method: "QRIS", payment_category_id: 4 },
   deposit_bank: { method: "BANK", payment_category_id: 1 },
@@ -21,7 +23,10 @@ const handleDepositSelection = async (bot, chatId, data) => {
 
   if (depositInfo) {
     // Store selected deposit method in session data
-    userDepositData[chatId] = { ...depositInfo };
+    userDepositData[chatId] = {
+      method: depositInfo.method,
+      payment_category_id: String(depositInfo.payment_category_id),
+    };    
     bot.sendMessage(
       chatId,
       `You selected ${depositInfo.method}. Please enter the amount you want to deposit.`
@@ -49,52 +54,79 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
   const amount = parseFloat(text);
   userDepositData[chatId].amount = amount;
 
-  // Now fetch and show bonus options
+  // Now fetch and show bonus options (matched to the user’s payment category)
   await showBonusOptions(bot, chatId);
 };
 
 /**
- * Fetch bonus list from API and present them to the user
+ * Fetch and present relevant bonuses for the selected payment_category_id
  */
 const showBonusOptions = async (bot, chatId) => {
   try {
-    // Example endpoint: adjust as needed
-    const response = await axios.get(`${apiBaseUrl}/bonuses`, {
+    // 1) Get the user's chosen payment_category_id from session
+    const { payment_category_id } = userDepositData[chatId];
+
+    // 2) Fetch the /bonusesPayment mapping
+    const responseBonusPayment = await axios.get(`${apiBaseUrl}/bonusesPayment`, {
       headers: { "x-endpoint-secret": API_SECRET },
     });
+    const bonusPaymentData = responseBonusPayment.data?.data || [];
     
-    // 'response.data' is an object like: { status, data: [...], msg }
-    const bonuses = response.data;      
-    // Extract the array:
-    const bonusArray = bonuses.data;  
-    
-    // Check if we indeed have an array
-    if (!bonusArray || !Array.isArray(bonusArray) || bonusArray.length === 0) {
-      bot.sendMessage(chatId, "No bonuses available at the moment. Proceeding without bonus...");
-      return;
+    // 3) Filter only those that match the user’s chosen payment_category_id
+    const matchedBonusPayments = bonusPaymentData.filter(
+      (bp) => String(bp.payment_category_id) === String(payment_category_id)
+    );
+
+    // If no matched bonusPayment, skip bonus entirely
+    if (!matchedBonusPayments || matchedBonusPayments.length === 0) {
+      bot.sendMessage(
+        chatId,
+        "No relevant bonuses available for your selected payment method. Proceeding without bonus..."
+      );
+      // proceed to next step
+      return proceedAfterBonusSelection(bot, chatId);
     }
-    
-    // Now map over the real array 'bonusArray'
-    const inlineKeyboard = bonusArray.map((bonus) => [
+
+    // 4) Fetch the main /bonuses list
+    const responseBonuses = await axios.get(`${apiBaseUrl}/bonuses`, {
+      headers: { "x-endpoint-secret": API_SECRET },
+    });
+    const bonusesData = responseBonuses.data?.data || [];
+
+    // 5) Filter out only the bonus objects whose ID is in the matched bonusPayment set
+    //    (bonusPayment.bonus_id should match bonus.id)
+    const validBonusIds = matchedBonusPayments.map((bp) => String(bp.bonus_id));
+    const relevantBonuses = bonusesData.filter((bonus) =>
+      validBonusIds.includes(String(bonus.id))
+    );
+
+    // If still no matched bonus, skip
+    if (!relevantBonuses || relevantBonuses.length === 0) {
+      bot.sendMessage(
+        chatId,
+        "No relevant bonuses found for your selection. Proceeding without bonus..."
+      );
+      return proceedAfterBonusSelection(bot, chatId);
+    }
+
+    // 6) Build the inline keyboard for the matched bonuses
+    const inlineKeyboard = relevantBonuses.map((bonus) => [
       {
-        // Adjust the property name to match your data. 
-        // If it's bonus.title or bonus.bonus_name, etc.
-        text: bonus.title,  
+        text: bonus.title, // Adjust if your bonus object uses a different property for the title
         callback_data: `bonus_selected-${bonus.id}`,
       },
     ]);
-    
-    // Add a "Skip Bonus" option
+
+    // 7) Add a "Skip Bonus" option
     inlineKeyboard.push([
       { text: "Skip Bonus", callback_data: `skip_bonus` },
     ]);
-    
+
     bot.sendMessage(chatId, "Please select a bonus or skip:", {
       reply_markup: {
         inline_keyboard: inlineKeyboard,
       },
     });
-    
   } catch (error) {
     console.error("Error fetching bonus:", error.message);
     bot.sendMessage(
@@ -102,7 +134,7 @@ const showBonusOptions = async (bot, chatId) => {
       "Failed to retrieve bonus. Proceeding without bonus..."
     );
     // If there's an error, proceed without bonus
-    proceedAfterBonusSelection(bot, chatId, null);
+    proceedAfterBonusSelection(bot, chatId);
   }
 };
 
@@ -130,16 +162,16 @@ const handleBonusSelectionCallback = async (
     return;
   }
 
-  // Store the selected bonus
-  userDepositData[chatId].bonusId = selectedBonusId;
+  userDepositData[chatId].bonusId = selectedBonusId ? String(selectedBonusId) : null;
 
   // Proceed with the next step in deposit flow
   proceedAfterBonusSelection(bot, chatId, checkUserExist);
 };
 
 /**
- * Logic after bonus is chosen: if method is QRIS, go QRIS flow;
- * otherwise, if Bank/Ewallet/Pulsa, get banks, etc.
+ * Logic after bonus is chosen:
+ * - If method is QRIS, generate QR code flow
+ * - Otherwise, Bank/Ewallet/Pulsa => fetch banks and let user pick
  */
 const proceedAfterBonusSelection = async (bot, chatId, checkUserExist) => {
   const { method } = userDepositData[chatId];
@@ -174,7 +206,6 @@ const promptBankSelection = async (bot, chatId) => {
     });
 
     let banks = response.data;
-    // Make sure to handle the structure of your API's response
     if (banks && typeof banks === "object" && !Array.isArray(banks)) {
       banks = banks.banks || banks.data || banks.list || Object.values(banks);
     }
@@ -189,7 +220,7 @@ const promptBankSelection = async (bot, chatId) => {
 
     // Filter banks based on selected payment_category_id
     const filteredBanks = banks.filter(
-      (bank) => bank.payment_category_id === payment_category_id
+      (bank) => String(bank.payment_category_id) === String(payment_category_id)
     );
 
     if (filteredBanks.length === 0) {
@@ -233,7 +264,7 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
   if (!userDepositData[chatId]) return;
 
   const amount = parseFloat(text);
-  const { payment_category_id, bonusId } = userDepositData[chatId];
+  const { payment_category_id, bonusId } = userDepositData[chatId] || {};
   const user = await checkUserExist(chatId);
 
   if (!user) {
@@ -250,11 +281,11 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
         accName: user.accName,
         accNumber: user.accNumber,
         company_code: user.company_code,
-        payment_category_id,
+        payment_category_id: payment_category_id || null, // already a string
         amount,
         type: 1,
         platform: "telegram",
-        bonus_id: bonusId, // <--- Pass the bonusId here
+        bonus_id: bonusId || null, // <--- Pass the selected bonus ID here
       },
       {
         headers: { "x-endpoint-secret": API_SECRET },
@@ -268,13 +299,15 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
 
+      // Generate QR code file
       await QRCode.toFile(filePath, resData.qris_data, {
         type: "png",
         errorCorrectionLevel: "H",
       });
 
+      // Send the QR image to the user
       bot.sendPhoto(chatId, filePath, {
-        caption: `Deposit of ${amount} via QRIS has been recorded successfully.\nQRIS only active for 5 minutes.`,
+        caption: `Deposit of ${amount} via QRIS has been recorded successfully.\nQRIS is only active for 5 minutes.`,
         parse_mode: "HTML",
       });
 
@@ -322,7 +355,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   const recipientName = bankDetails.slice(2).join("-").trim();
 
   const amount = userDepositData[chatId].amount;
-  const { payment_category_id, bonusId } = userDepositData[chatId];
+  const { payment_category_id, bonusId } = userDepositData[chatId] || {};
   const user = await checkUserExist(chatId);
 
   if (!user) {
@@ -340,7 +373,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
       accName: user.accName,
       accNumber: user.accNumber,
       company_code: user.company_code,
-      payment_category_id,
+      payment_category_id: payment_category_id || null, // string
       amount,
       type: 1,
       notes: "telegram",
@@ -348,17 +381,14 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
       bank_penerima: bankName,
       nama_penerima: recipientName,
       nomer_penerima: accountNumber,
-      bonus_id: bonusId, // <--- Pass the bonusId here
+      bonus_id: bonusId || null, // string
     };
 
     console.log("📡 Sending Deposit Request:", requestData);
 
     const response = await axios.post(`${apiBaseUrl}/transaksi`, requestData, {
       headers: { "x-endpoint-secret": API_SECRET },
-      validateStatus: function (status) {
-        // Accept 200, 201, 400
-        return [200, 201, 400].includes(status);
-      },
+      validateStatus: (status) => [200, 201, 400].includes(status),
     });
 
     const resData = response.data;
@@ -381,11 +411,12 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
     }
   } catch (error) {
     console.error("❌ Error while calling deposit API:", error.message);
-
     if (error.response && error.response.data) {
       bot.sendMessage(
         chatId,
-        `❌ Deposit failed: ${error.response.data.msg || "An unknown error occurred."}`
+        `❌ Deposit failed: ${
+          error.response.data.msg || "An unknown error occurred."
+        }`
       );
     } else {
       bot.sendMessage(
@@ -395,6 +426,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
     }
   }
 
+  // Clean up the user's deposit session
   delete userDepositData[chatId];
 };
 
@@ -403,6 +435,5 @@ module.exports = {
   handleDepositAmount,
   handleBonusSelectionCallback,
   processBankDeposit,
-  // Expose QRIS as well if needed externally
   processDepositQRISAmount,
 };
