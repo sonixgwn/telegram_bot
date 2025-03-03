@@ -1,6 +1,6 @@
 // config.js
 module.exports = {
-    telegramToken: "7548403531:AAG1DHdQgZ2mQ1Rv6ci99oYQRFfS-CbYFWM",
+    telegramToken: "7796079955:AAHBSHgmtvpxYw2rUsJYn8Es9rmhJmsQmX4",
     apiBaseUrl: "http://localhost:5050",
     telegramApiUrl: "http://localhost:5050/telegram",
     master_code: "WINDEV",

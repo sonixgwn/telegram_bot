@@ -1,6 +1,7 @@
 const axios = require("axios");
 const  showMenu = require("./menuHandler");
 const { handleDepositSelection, processBankDeposit, handleBonusSelectionCallback } = require("../callback/deposit");
+const handleWithdrawFunds  = require("../callback/withdraw");
 const { checkUserExist } = require("../api");
 const bot = require("../botInstance"); // Ensure correct import
 const { API_SECRET, apiBaseUrl, telegramApiUrl } = require("../config");
@@ -33,6 +34,9 @@ const callbackHandlers = {
         });
     },
 
+    withdraw_funds: async (chatId) => {
+        await handleWithdrawFunds(bot, chatId);
+    },
     deposit_: async (chatId, data) => {
         handleDepositSelection(bot, chatId, data);
     },
