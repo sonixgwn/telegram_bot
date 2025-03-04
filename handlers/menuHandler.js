@@ -6,8 +6,7 @@ async function showMenu(chatId, password = null) {
     const user = await checkUserExist(chatId, password);
 
     let keyboard;
-    if (user.status !== 1) return;
-    if (user && user.status === 1) {
+    if (user) {
       keyboard = [
         [{ text: "🎮 Games" }, { text: "👤 Profile" }],
         [{ text: "🏦 Balance" }, { text: "🎁 Bonuses" }],

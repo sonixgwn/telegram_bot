@@ -5,7 +5,7 @@ async function handleBalance(chatId) {
   try {
     const user = await checkUserExist(chatId);
     
-    if (!user || user.status !== 1) {
+    if (!user) {
       bot.sendMessage(chatId, "Your user information is not found. Please contact support.");
       return;
     }
