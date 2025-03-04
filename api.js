@@ -94,7 +94,9 @@ const checkUserExist = async (chatId, password=null) => {
     bot.sendMessage(chatId, 'Login Successful.');
   }
 
-  return data;
+  // Status 1 = User exists
+  // Status 0 = new User
+  return data.data ? {...data.data, status: 1} : {status: 0};
 };
 
 module.exports = { getSiteSetting, getAccountListing, userLogin, checkUserExist };

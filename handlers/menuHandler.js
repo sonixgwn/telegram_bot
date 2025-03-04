@@ -7,7 +7,7 @@ async function showMenu(chatId, password = null) {
 
     let keyboard;
     if (user.status !== 1) return;
-    if (user.data && user.status === 1) {
+    if (user && user.status === 1) {
       keyboard = [
         [{ text: "🎮 Games" }, { text: "👤 Profile" }],
         [{ text: "🏦 Balance" }, { text: "🎁 Bonuses" }],
