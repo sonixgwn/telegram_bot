@@ -117,6 +117,8 @@ const callbackHandlers = {
             bot.sendMessage(chatId, "You are not registered. Please register first.");
             return;
         }
+  
+        if (user && user.login) return;
 
         try {
             // Fetch game details

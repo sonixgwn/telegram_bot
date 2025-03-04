@@ -16,6 +16,8 @@ async function handleWithdrawFunds(bot, chatId) {
         bot.sendMessage(chatId, "You are not registered. Please register first.");
         return;
     }
+  
+    if (user && user.login) return;
 
     // Prompt for withdrawal amount
     bot.sendMessage(chatId, "Please enter the amount you want to withdraw:");

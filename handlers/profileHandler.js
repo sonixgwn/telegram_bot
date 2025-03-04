@@ -7,6 +7,8 @@ async function handleProfile(chatId) {
   if (!user) {
     return bot.sendMessage(chatId, "You are not registered. Please register first.");
   }
+  
+  if (user && user.login) return;
 
   const siteSettings = await getSiteSetting(chatId);
   bot.sendMessage(

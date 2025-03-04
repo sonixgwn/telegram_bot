@@ -4,11 +4,14 @@ const { checkUserExist } = require("../api");
 async function handleBalance(chatId) {
   try {
     const user = await checkUserExist(chatId);
+    console.log(user);
     
     if (!user) {
       bot.sendMessage(chatId, "Your user information is not found. Please contact support.");
       return;
     }
+
+    if (user && user.login) return;
 
     const balance = user.saldo;
     const msgB = await bot.sendMessage(

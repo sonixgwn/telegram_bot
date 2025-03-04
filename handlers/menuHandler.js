@@ -4,6 +4,8 @@ const { checkUserExist } = require("../api");
 async function showMenu(chatId, password = null) {
   try {
     const user = await checkUserExist(chatId, password);
+  
+    if (user && user.login) return;
 
     let keyboard;
     if (user) {

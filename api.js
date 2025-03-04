@@ -69,7 +69,7 @@ const userLogin = async (chatId, data) => {
   });
   
   return {
-    status: 0
+    login: true
   };
 };
 
@@ -85,6 +85,7 @@ const checkUserExist = async (chatId, password=null) => {
   });
 
   const data = response.data;
+  console.log(data);
 
   if (data.status === -1) {
     return await userLogin(chatId, data);
@@ -95,6 +96,8 @@ const checkUserExist = async (chatId, password=null) => {
   }
 
   if (data.status === 1 && !data.data) return null;
+
+  console.log(data);
 
   // Status 1 = User exists
   // Status 0 = new User

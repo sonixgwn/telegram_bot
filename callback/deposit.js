@@ -261,6 +261,8 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
     return;
   }
 
+  if (user && user.login) return;
+
   try {
     const response = await axios.post(
       `${apiBaseUrl}/transaksi`,
@@ -349,6 +351,8 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
     );
     return;
   }
+  
+  if (user && user.login) return;
 
   try {
     const requestData = {
