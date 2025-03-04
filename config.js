@@ -1,6 +1,6 @@
 // config.js
 module.exports = {
-    telegramToken: "7796079955:AAHBSHgmtvpxYw2rUsJYn8Es9rmhJmsQmX4",
+    telegramToken: "7890415940:AAG97WUcW2sMXhHDzWgM_o63_jytzk3zXvQ", //@pwcplayalpha_bot
     apiBaseUrl: "http://localhost:5050",
     telegramApiUrl: "http://localhost:5050/telegram",
     master_code: "WINDEV",
