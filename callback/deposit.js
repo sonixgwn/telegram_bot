@@ -283,6 +283,7 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
     );
 
     const resData = response.data;
+
     if (resData.status === 1) {
       const filePath = path.join(__dirname, `../temp/${chatId}.png`);
       if (!fs.existsSync(path.dirname(filePath))) {
@@ -294,7 +295,7 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
         errorCorrectionLevel: "H",
       });
 
-      bot.sendPhoto(chatId, filePath, {
+      await bot.sendPhoto(chatId, filePath, {
         caption: `Deposit of ${amount} via QRIS has been recorded successfully.\nQRIS is only active for 5 minutes.`,
         parse_mode: "HTML",
       });
