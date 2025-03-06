@@ -5,7 +5,7 @@ const handleWithdrawFunds  = require("../callback/withdraw");
 const { checkUserExist } = require("../api");
 const bot = require("../botInstance"); // Ensure correct import
 const { API_SECRET, apiBaseUrl, telegramApiUrl } = require("../config");
-const completeRegistration = require("../callback/register");
+const {completeRegistration} = require("../callback/register");
 
 const callbackHandlers = {
     bonus_selected: async (chatId, data) => {
