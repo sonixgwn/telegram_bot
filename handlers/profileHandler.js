@@ -14,7 +14,7 @@ async function handleProfile(chatId) {
   bot.sendMessage(
     chatId,
     `Your profile details:
-    - *Username:* ${user.username}
+  - *Username:* ${user.username.replace(/_/g, '\\_')}
     - *Mata Uang:* IDR
     - *Bank:* ${user.bank}
     - *Rekening:* ${user.accNumber}
