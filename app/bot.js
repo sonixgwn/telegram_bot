@@ -1,3 +1,4 @@
+require("dotenv").config();
 const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
@@ -90,6 +91,10 @@ bot.on("contact", (msg) => {
   const phoneNumber = msg.contact.phone_number;
 
   registerUser(bot, phoneNumber, chatId);
+});
+
+bot.on('polling_error', (error) => {
+  console.log(`[polling_error] ${error.code}: ${error.message}`);
 });
 
 console.log("Bot is running...");
