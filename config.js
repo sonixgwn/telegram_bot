@@ -1,5 +1,4 @@
 // config.js
-
 const apiBaseUrl = process.env.API_URL;
 module.exports = {
     telegramToken: process.env.BOT_TOKEN,
