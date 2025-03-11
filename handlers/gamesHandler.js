@@ -4,7 +4,7 @@ async function handleGames(chatId) {
   const gamesKeyboard = [
     [
       { text: "🎰 Slots", callback_data: "providers_slots" },
-      { text: "🎲 Live Casino", callback_data: "categories_LC_Casino" },
+      { text: "🎲 Live Casino", callback_data: "categories_LC_SeamlessGame" },
     ],
     [
       { text: "⚽ Sports", callback_data: "categories_SB_SportsBook" },
