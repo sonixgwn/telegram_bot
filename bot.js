@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 const { registerUser, completeRegistration, } = require("./callback/register");
-const { handleDepositSelection, processBankDeposit, handleDepositAmount } = require("./callback/deposit");
+const { userDepositData, handleDepositSelection, processBankDeposit, handleDepositAmount, processDepositWithProof } = require("./callback/deposit");
 const handleGames = require("./handlers/gamesHandler");
 const handleProfile = require("./handlers/profileHandler");
 const handleBalance = require("./handlers/balanceHandler");
@@ -73,13 +73,21 @@ bot.on("message", async (msg) => {
 
   console.log(`User sent message: ${text}`);
 
+  // 1) Fetch site settings (if needed)
   await getSiteSetting(chatId);
+
+  // 2) Check if the text matches any known commands
   if (commandHandlers[text]) {
     await commandHandlers[text](chatId);
   } else {
     console.log(`Unknown command: ${text}`);
   }
-  await handleDepositAmount(bot, chatId, text, checkUserExist);
+
+  // 3) Only call handleDepositAmount if we are expecting the user to enter an amount
+  const userData = userDepositData[chatId];
+  if (userData && userData.currentStep === "WAITING_FOR_AMOUNT") {
+    await handleDepositAmount(bot, chatId, text, checkUserExist);
+  }
 });
 
 bot.on("callback_query", async (callbackQuery) => {
@@ -91,6 +99,10 @@ bot.on("contact", (msg) => {
   const phoneNumber = msg.contact.phone_number;
 
   registerUser(bot, phoneNumber, chatId);
+});
+// In your main bot file where you set up the bot listeners:
+bot.on("photo", async (msg) => {
+  await processDepositWithProof(bot, msg, checkUserExist);
 });
 
 bot.on('polling_error', (error) => {
