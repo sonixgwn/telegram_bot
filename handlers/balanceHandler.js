@@ -20,8 +20,8 @@ async function handleBalance(chatId) {
       {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "➕ Deposit to Account", callback_data: "deposit_to_account" }],
-            [{ text: "➖ Withdraw Funds", callback_data: "withdraw_funds" }],
+            [{ text: "➕ Deposit", callback_data: "deposit_to_account" }],
+            [{ text: "➖ Withdraw", callback_data: "withdraw_funds" }],
           ],
         },
         parse_mode: "HTML",

@@ -10,19 +10,20 @@ async function showMenu(chatId, password = null) {
     let keyboard;
     if (user) {
       keyboard = [
-        [{ text: "🎮 Games" }, { text: "👤 Profile" }],
-        [{ text: "🏦 Balance" }, { text: "🎁 Bonuses" }],
+        [{ text: "🎮 Games" }, { text: "👤 Informasi Akun" }],
+        [{ text: "🏦 Saldo" }, { text: "🎁 Bonus & Promosi" }],
         [{ text: "ℹ️ Information" }],
       ];
     } else {
       keyboard = [
-        [{ text: "🎮 Games" }, { text: "🎁 Bonuses" }],
-        [{ text: "📝 Registration" }],
-        [{ text: "ℹ️ Information" }],
+        // [{ text: "🎮 Games" }, { text: "🎁 Bonus & Promosi" }],
+        // [{ text: "📝 Registration" }],
+        // [{ text: "ℹ️ Information" }],
+        [{ text: "📝 Registration" }, { text: "🎮 Games" }],
       ];
     }
     
-    bot.sendMessage(chatId, "Silakan pilih opsi berikut:", {
+    bot.sendMessage(chatId, "Silakan pilih opsi berikut :", {
       reply_markup: {
         keyboard,
         resize_keyboard: true,

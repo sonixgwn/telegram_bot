@@ -91,7 +91,8 @@ const checkUserExist = async (chatId, password=null) => {
   }
 
   if (password !== null) {
-    bot.sendMessage(chatId, 'Login Successful.');
+    console.log(data);
+    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${data.data.saldo}`);
   }
 
   if (data.status === 1 && !data.data) return null;

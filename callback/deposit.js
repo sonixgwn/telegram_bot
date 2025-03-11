@@ -103,7 +103,7 @@ const handleDepositSelection = async (bot, chatId, data) => {
     };    
     bot.sendMessage(
       chatId,
-      `You selected ${depositInfo.method}. Please enter the amount you want to deposit.`
+      `Anda memilih Pembayaran via ${depositInfo.method}, Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):`
     );
   } else {
     bot.sendMessage(
@@ -124,7 +124,7 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
     return;
   }
   if (isNaN(text)) {
-    bot.sendMessage(chatId, "Please enter a valid amount (number).");
+    bot.sendMessage(chatId, "Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):");
     return;
   }
   const amount = parseFloat(text);
@@ -194,10 +194,10 @@ const showBonusOptions = async (bot, chatId) => {
 
     // 7) Add a "Skip Bonus" option
     inlineKeyboard.push([
-      { text: "Skip Bonus", callback_data: `skip_bonus` },
+      { text: "Tanpa Promosi", callback_data: `skip_bonus` },
     ]);
 
-    bot.sendMessage(chatId, "Please select a bonus or skip:", {
+    bot.sendMessage(chatId, "Silahkan pilih Bonus yang tersedia, atau pilih Tanpa Promosi untuk melanjutkan:", {
       reply_markup: {
         inline_keyboard: inlineKeyboard,
       },
@@ -270,7 +270,7 @@ const proceedAfterBonusSelection = async (bot, chatId, checkUserExist) => {
  * Step 4a: For Bank/Ewallet/Pulsa, fetch banks and show selection
  */
 const promptBankSelection = async (bot, chatId) => {
-  const { payment_category_id, amount } = userDepositData[chatId];
+  const { payment_category_id, amount, method } = userDepositData[chatId];
 
   try {
     const response = await axios.get(`${apiBaseUrl}/getBanks`, {
@@ -315,7 +315,7 @@ const promptBankSelection = async (bot, chatId) => {
 
     bot.sendMessage(
       chatId,
-      `You have entered an amount of: ${amount}\nPlease choose your preferred bank/payment:`,
+      `Anda mengajukan nominal deposit sebesar ${amount}.\nSilahkan pilih platform penyedia ${method} untuk pembayaran :`,
       bankOptions
     );
   } catch (error) {
@@ -377,7 +377,7 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
       });
 
       await bot.sendPhoto(chatId, filePath, {
-        caption: `Deposit of ${amount} via QRIS has been recorded successfully.\nQRIS is only active for 5 minutes.`,
+        caption: `Deposit sebesar ${amount} via QRIS telah dibuat dan berlaku selama 5 Menit, Silahkan lakukan pembayaran.`,
         parse_mode: "HTML",
       });
 
@@ -480,6 +480,8 @@ async function processDepositWithProof(bot, msg, checkUserExist) {
     const file = await bot.getFile(fileId); 
     const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
 
+    console.log(fileUrl);
+
     // 2) Instead of downloading, just pass the Telegram URL in JSON
     const proofImageUrl = fileUrl;
 
@@ -523,14 +525,14 @@ async function processDepositWithProof(bot, msg, checkUserExist) {
     if (resData.status === 1) {
       bot.sendMessage(
         chatId,
-        `✅ Your deposit (IDR ${amount}) has been successfully recorded.\n` +
+        `✅ Deposit sebesar (IDR ${amount}) via ${userData.method} telah dibuat.\n` +
         `Thank you for sending your proof!\n\n` +
         `We will process your deposit shortly.`
       );
     } else {
       bot.sendMessage(
         chatId,
-        `❌ Deposit submission failed: ${resData.msg || "Unknown error."}`
+        `❌ Deposit Gagal: ${resData.msg || "Unknown error."}. Silahkan hubungi bantuan Livechat untuk bantuan.`
       );
     }
   } catch (error) {

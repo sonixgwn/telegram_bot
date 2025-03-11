@@ -33,7 +33,7 @@ const callbackHandlers = {
             [{ text: "📶 PULSA", callback_data: "deposit_pulsa" }],
         ];
 
-        bot.sendMessage(chatId, "💳 Choose your deposit method:", {
+        bot.sendMessage(chatId, "💳 Silahkan pilih metode pembayaran Deposit Anda:", {
             reply_markup: { inline_keyboard: depositMethodsKeyboard },
         });
     },
@@ -52,6 +52,7 @@ const callbackHandlers = {
 
     providers_: async (chatId, data) => {
         const game_category = data.split("_")[1];
+        const label = data.split("_")[2];
 
         try {
             const response = await axios.get(
@@ -87,7 +88,7 @@ const callbackHandlers = {
                     providerButtons.push(row);
                 }
 
-                bot.sendMessage(chatId, "Select a Provider:", {
+                bot.sendMessage(chatId, `Silahkan Pilih Provider ${label}:`, {
                     reply_markup: { inline_keyboard: providerButtons },
                 });
             } else {
@@ -283,6 +284,7 @@ const callbackHandlers = {
     categories_: async (chatId, data) => {
         const provider_type = data.split("_")[1];
         const portfolio = data.split("_")[2];
+        const label = data.split("_")[3];
 
         try {
             const response = await axios.get(
@@ -321,7 +323,7 @@ const callbackHandlers = {
                 }
 
                 // Kirim daftar provider ke pengguna
-                bot.sendMessage(chatId, "Select a Game:", {
+                bot.sendMessage(chatId, `Silahkan Pilih Provider ${label}:`, {
                     reply_markup: { inline_keyboard: providerButtons },
                 });
             } else {

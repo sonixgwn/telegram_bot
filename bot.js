@@ -3,7 +3,6 @@ const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
-const { registerUser, completeRegistration, } = require("./callback/register");
 const { userDepositData, handleDepositSelection, processBankDeposit, handleDepositAmount, processDepositWithProof } = require("./callback/deposit");
 const handleGames = require("./handlers/gamesHandler");
 const handleProfile = require("./handlers/profileHandler");
@@ -28,20 +27,24 @@ bot.onText(/\/start/, async (msg) => {
   bot.sendMessage(
     chatId,
     `
-    <b>🎰 Welcome Message!</b>
+    <b>Selamat Datang di “NAMA TOKO”, Telegram Casino.</b>
 
-    Welcome to our <b>🎰 Telegram Casino</b>!  
-    🎰 <i>PWCPLAY DEV</i> 🎰  
-    <i>Best games from top providers directly in Telegram!</i>
-  `,
+    Bermain Slot, Casino, Sepak Bola, dll Langsung di Telegram.
+    `,
     {
       parse_mode: "HTML",
+      // reply_markup: {
+      //   inline_keyboard: [
+      //     [{ text: "Halaman Registrasi", callback_data: "continue" }],
+      //     [{ text: "Permainan", callback_data: "continue" }],
+      //   ],
+      // },
       reply_markup: {
-        inline_keyboard: [
-          [{ text: "➡️ Continue", callback_data: "continue" }],
-          [{ text: "⏳ I'll come back later", callback_data: "later" }],
+        keyboard: [
+          [{ text: "📝 Registration" }, { text: "🎮 Games" }],
         ],
-      },
+        resize_keyboard: true,
+      }
     }
   );
 });
@@ -56,16 +59,16 @@ bot.onText(/\/menu/, async (msg) => {
 bot.onText(/\/chat/, async (msg) => {
   const chatId = msg.chat.id;
   ss = await getSiteSetting(chatId);
-  bot.sendMessage(chatId, "Hubungi Admin Super Ramah kami dibawah ini:", await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram));
+  bot.sendMessage(chatId, "Silahkan pilih sarana pelayanan Kami dibawah ini:", await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram));
 });
 const commandHandlers = {
   "🎮 Games": handleGames,
-  "👤 Profile": handleProfile,
-  "🏦 Balance": handleBalance,
+  "👤 Informasi Akun": handleProfile,
+  "🏦 Saldo": handleBalance,
   "📝 Registration": handleRegistration,
-  "🎁 Bonuses": handleBonuses,
+  "🎁 Bonus & Promosi": handleBonuses,
   // "ℹ️ Information": handleInformation,
-  // "⬅️ Back": (chatId) => showMenu(chatId),
+  "⬅️ Back": (chatId) => showMenu(chatId),
 };
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
@@ -94,12 +97,6 @@ bot.on("callback_query", async (callbackQuery) => {
   await handleCallbackQuery(callbackQuery);
 });
 
-bot.on("contact", (msg) => {
-  const chatId = msg.chat.id;
-  const phoneNumber = msg.contact.phone_number;
-
-  registerUser(bot, phoneNumber, chatId);
-});
 // In your main bot file where you set up the bot listeners:
 bot.on("photo", async (msg) => {
   await processDepositWithProof(bot, msg, checkUserExist);

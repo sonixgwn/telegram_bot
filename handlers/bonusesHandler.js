@@ -8,8 +8,6 @@ const bot = require("../botInstance"); // Import shared bot instance
  */
 const handleBonuses = async (chatId) => {
   try {
-    bot.sendMessage(chatId, "🔄 Fetching available bonuses... Please wait.");
-
     // Make API request to fetch bonuses
     const response = await axios.get(`${apiBaseUrl}/bonuses`, {
       headers: { "x-endpoint-secret": API_SECRET },
@@ -27,7 +25,7 @@ const handleBonuses = async (chatId) => {
     }
 
     // Format bonuses data into a readable message
-    let message = "<b>🎁 Available Bonuses:</b>\n\n";
+    let message = "<b>🎁 Pilihan Bonus / Promosi:</b>\n\n";
     bonuses.forEach((bonus, index) => {
       message += `🔹 <b>${bonus.title}</b>\n`;
       message += `💰 <b>Amount:</b> ${

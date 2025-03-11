@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { getAccountListing } = require("../api");
 const { API_SECRET, telegramApiUrl, master_code, company_code } = require("../config");
+const showMenu = require("../handlers/menuHandler");
 
 let userRegistrationData = {};
 let userRegisterData = {};
@@ -9,7 +10,7 @@ let userRegisterData = {};
 const registerUser = async (bot, phone, chat_id) => {
   console.log(`Registering user with userCode: ${phone} and chatId: ${chat_id}`);
 
-  const r1 = await bot.sendMessage(chat_id, "Please enter your username:", {
+  const r1 = await bot.sendMessage(chat_id, "Silahkan Masukan User ID Anda:", {
     reply_markup: { force_reply: true },
   });
 
@@ -21,7 +22,7 @@ const registerUser = async (bot, phone, chat_id) => {
     const username = msg1.text;
     console.log(`Received username: ${username}`);
 
-    const r2 = await bot.sendMessage(chat_id, "Please enter your Password:", {
+    const r2 = await bot.sendMessage(chat_id, "Silahkan Masukan Kata Sandi Anda:", {
       reply_markup: { force_reply: true },
     });
 
@@ -40,7 +41,7 @@ const registerUser = async (bot, phone, chat_id) => {
 
         const bankButtons = banks.map(bank => [{ text: bank.label, callback_data: `register_${bank.label}` }]);
 
-        bot.sendMessage(chat_id, `Please Choose Your Bank:`, {
+        bot.sendMessage(chat_id, `Silahkan Pilih Penyedia Pembayaran Anda:`, {
           reply_markup: { inline_keyboard: bankButtons },
         });
       } else {
@@ -54,7 +55,7 @@ const registerUser = async (bot, phone, chat_id) => {
 const completeRegistration = async (bot, chatId, bankLabel) => {
   console.log(`Received bank: ${bankLabel}`);
 
-  const r3 = await bot.sendMessage(chatId, "Please enter Account Number:", {
+  const r3 = await bot.sendMessage(chatId, "Silahkan Masukan Nomor Rekening Anda:", {
     reply_markup: { force_reply: true },
   });
 
@@ -66,7 +67,7 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
     const accNumber = msg4.text;
     console.log(`Received Account Number: ${accNumber}`);
 
-    const r4 = await bot.sendMessage(chatId, "Please enter Account Name:", {
+    const r4 = await bot.sendMessage(chatId, "Silahkan Masukan Nama Rekening Anda:", {
       reply_markup: { force_reply: true },
     });
 
@@ -100,7 +101,9 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
 
         bot.sendMessage(chatId, data.data.msg);
         console.log(`User registered: ${username}, ${password}, ${phone}, ${bankLabel}, ${accNumber}, ${accName}`);
-        bot.sendMessage(chatId, "Registration completed successfully.");
+        bot.sendMessage(chatId, "Registrasi Berhasil, Selamat Bergabung di “NAMA TOKO”");
+
+        showMenu(chatId);
       } catch (error) {
         console.error("Error registering user:", error.message);
         bot.sendMessage(chatId, "Failed to register user. Please try again later.");

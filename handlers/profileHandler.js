@@ -13,13 +13,14 @@ async function handleProfile(chatId) {
   const siteSettings = await getSiteSetting(chatId);
   bot.sendMessage(
     chatId,
-    `Your profile details:
-  - *Username:* ${user.username.replace(/_/g, '\\_')}
+    `Rincian Informasi Akun:
+    - *User ID:* ${user.username.replace(/_/g, '\\_')}
     - *Mata Uang:* IDR
     - *Bank:* ${user.bank}
-    - *Rekening:* ${user.accNumber}
+    - *Nama Rekening:* ${user.accName}
+    - *Nomor Rekening:* ${user.accNumber}
 
-    Hubungi support jika Anda memerlukan bantuan.
+    Hubungi Tim Support Kami jika Anda memerlukan bantuan.
     `,
     {
       parse_mode: "Markdown",

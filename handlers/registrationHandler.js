@@ -5,10 +5,9 @@ async function handleRegistration(chatId) {
   bot.sendMessage(
     chatId,
     `
-    To complete the registration, share your phone number by clicking on the "Share phone number" button. 
-    (If this button is not available, click on the ⚃ icon in the lower right corner of the screen).
+    Untuk menyelesaikan Registrasi Anda, Silahkan bagikan nomor telepon Telegram Anda dengan memilih tombol “Share”.
 
-    For privacy, we will be deleting all your information during the registration process.
+    Untuk keamanan Anda, Kami akan menghapus semua informasi registrasi Anda setelah proses ini selesai.
   `,
     {
       reply_markup: {
@@ -24,8 +23,9 @@ async function handleRegistration(chatId) {
 }
 
 // Handling contact share event for registration
-bot.on("contact", (msg) => {
+bot.once("contact", (msg) => {
   const chatId = msg.chat.id;
+  console.log(msg.chat);
   const phoneNumber = msg.contact.phone_number;
 
   registerUser(bot, phoneNumber, chatId);
