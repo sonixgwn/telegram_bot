@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require("axios");
 const fs = require('fs');
 const path = require('path');
@@ -102,6 +103,10 @@ bot.on("contact", (msg) => {
 // In your main bot file where you set up the bot listeners:
 bot.on("photo", async (msg) => {
   await processDepositWithProof(bot, msg, checkUserExist);
+});
+
+bot.on('polling_error', (error) => {
+  console.log(`[polling_error] ${error.code}: ${error.message}`);
 });
 
 console.log("Bot is running...");

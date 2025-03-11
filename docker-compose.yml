@@ -1,0 +1,19 @@
+services:
+  pwc-telegram-app_node: 
+    container_name: pwc-telegram-app_node
+    hostname: pwc-telegram-app_node
+    build: .
+    shm_size: 1280mb
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      BOT_TOKEN: "7652915830:AAFvv_Z0SCR3LNlukvHoKv33WF1JUsjG1eo"
+      API_URL: "https://api.pwcplay.com"
+      MASTER_CODE: "windev"
+      COMPANY_CODE: "PWCPLAYDEV"
+      API_SECRET: "AbCdEfGh"
+
+    # volumes:
+    #   - ${PROJECTS_PATH}:/app
+    # command: sh -c "npm init -y && npm i && npx nodemon bot.js"

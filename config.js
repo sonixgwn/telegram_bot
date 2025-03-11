@@ -1,13 +1,11 @@
 // config.js
+const apiBaseUrl = process.env.API_URL;
 module.exports = {
-    // telegramToken: "7548403531:AAG1DHdQgZ2mQ1Rv6ci99oYQRFfS-CbYFWM", //@pwcdev_bot
-    // apiBaseUrl: "https://api-testlocal.rkgaming.xyz",
-    // telegramApiUrl: "https://api-testlocal.rkgaming.xyz/telegram",
-    telegramToken: "7890415940:AAG97WUcW2sMXhHDzWgM_o63_jytzk3zXvQ", //@pwcplayalpha_bot
-    apiBaseUrl: "http://localhost:5050",
-    telegramApiUrl: "http://localhost:5050/telegram",
-    master_code: "WINDEV",
-    company_code: "PWCPLAYDEV",
-    API_SECRET: "AbCdEfGh",
+    telegramToken: process.env.BOT_TOKEN,
+    apiBaseUrl,
+    telegramApiUrl: `${apiBaseUrl}/telegram`,
+    master_code: process.env.MASTER_CODE,
+    company_code: process.env.COMPANY_CODE,
+    API_SECRET: process.env.API_SECRET,
   };
   
