@@ -1,0 +1,75 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "pwc-telebot",
+            "image": "166435113148.dkr.ecr.ap-southeast-2.amazonaws.com/pwc/telebot:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "pwc-telebot-3000-tcp",
+                    "containerPort": 3000,
+                    "hostPort": 3000,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "BOT_TOKEN",
+                    "value": "7916095606:AAFxXaDYygEJ6UJAAESsF484-9rz9iM_fcA"
+                },
+                {
+                    "name": "API_URL",
+                    "value": "http://pwc-ms-cluster-alb-1495802723.ap-southeast-2.elb.amazonaws.com"
+                },
+                {
+                    "name": "MASTER_CODE",
+                    "value": "windev"
+                },
+                {
+                    "name": "COMPANY_CODE",
+                    "value": "PWCPRODDEMO"
+                },
+                {
+                    "name": "API_SECRET",
+                    "value": "AbCdEfGh"
+                }
+            ],
+            "secrets": [],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/pwc-telebot-deploy",
+                    "mode": "non-blocking",
+                    "awslogs-create-group": "true",
+                    "max-buffer-size": "25m",
+                    "awslogs-region": "ap-southeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+        
+            "systemControls": []
+        }
+    ],
+    "family": "pwc-telebot-deploy",
+    "executionRoleArn": "arn:aws:iam::166435113148:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "volumes": [],
+    "placementConstraints": [],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "tags": []
+}
