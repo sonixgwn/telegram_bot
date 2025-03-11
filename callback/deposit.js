@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const QRCode = require("qrcode");
 const { apiBaseUrl, API_SECRET } = require("../config");
+const FormData = require("form-data");
 
 // In-memory storage for deposit flows per chatId
 let userDepositData = {};
@@ -18,6 +19,79 @@ const depositMethods = {
 /**
  * Step 1: Handle deposit method selection
  */
+async function handleProofOfPayment(bot, msg, checkUserExist) {
+  const chatId = msg.chat.id;
+  const userData = userDepositData[chatId];
+
+  // If there's no deposit info or no transaction ID, user isn't in "awaiting proof" state
+  if (!userData || !userData.transactionId) {
+    return; // We either ignore or inform the user
+  }
+
+  const user = await checkUserExist(chatId);
+  if (!user) {
+    bot.sendMessage(chatId, "User not recognized, please /start or /login first.");
+    return;
+  }
+  if (user && user.login) return;
+
+  // The photo array is sorted by size, so let's grab the last (largest) photo
+  const photos = msg.photo;
+  const largestPhoto = photos[photos.length - 1];
+  const fileId = largestPhoto.file_id;
+
+  try {
+    // 1) Retrieve the file path from Telegram
+    const file = await bot.getFile(fileId); // getFile returns { file_id, file_path, ... }
+
+    // 2) Telegram's file download URL => "https://api.telegram.org/file/bot<TOKEN>/<file_path>"
+    //    But you can let the library handle it, or download via an HTTP request yourself.
+    //    Some libraries (like node-telegram-bot-api) let you do: bot.downloadFile(fileId, downloadPath).
+
+    const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
+
+    // 3) Download the image from Telegram
+    const response = await axios.get(fileUrl, { responseType: "arraybuffer" });
+    const fileBuffer = response.data;
+
+    // 4) Now build FormData for sending to your backend.
+    const form = new FormData();
+    form.append("transaction_id", userData.transactionId);
+    form.append("user_id", user.id);
+    // Suppose your backend expects the field name to be "proof_image"
+    form.append("proof_image", fileBuffer, {
+      filename: `proof_${Date.now()}.jpg`, 
+      contentType: "image/jpeg",
+    });
+
+    // 5) Post to your backend
+    const proofResponse = await axios.post(`${apiBaseUrl}/uploadProof`, form, {
+      headers: {
+        "x-endpoint-secret": API_SECRET,
+        ...form.getHeaders(), // required for multipart/form-data boundary
+      },
+    });
+
+    const proofData = proofResponse.data;
+    if (proofData.status === 1) {
+      bot.sendMessage(
+        chatId,
+        "✅ Proof of deposit has been uploaded successfully!\nThank you."
+      );
+    } else {
+      bot.sendMessage(chatId, `❌ Failed to upload proof: ${proofData.msg}`);
+    }
+  } catch (error) {
+    console.error("Error uploading proof:", error.message);
+    bot.sendMessage(
+      chatId,
+      "❌ There was an error uploading the proof. Please try again later."
+    );
+  } finally {
+    // Clear the deposit flow so we don't keep waiting for more proofs
+    delete userDepositData[chatId];
+  }
+}
 const handleDepositSelection = async (bot, chatId, data) => {
   const depositInfo = depositMethods[data];
 
@@ -25,6 +99,7 @@ const handleDepositSelection = async (bot, chatId, data) => {
     userDepositData[chatId] = {
       method: depositInfo.method,
       payment_category_id: String(depositInfo.payment_category_id),
+      currentStep: "WAITING_FOR_AMOUNT", // <-- new line
     };    
     bot.sendMessage(
       chatId,
@@ -44,13 +119,18 @@ const handleDepositSelection = async (bot, chatId, data) => {
  */
 const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
   if (!userDepositData[chatId]) return; // No deposit method was selected
-
+  if (userDepositData[chatId].currentStep !== "WAITING_FOR_AMOUNT") {
+    // Not expecting an amount input now, so ignore or return
+    return;
+  }
   if (isNaN(text)) {
     bot.sendMessage(chatId, "Please enter a valid amount (number).");
     return;
   }
   const amount = parseFloat(text);
   userDepositData[chatId].amount = amount;
+  userDepositData[chatId].currentStep = "WAITING_FOR_BONUS_SELECTION";
+
   await showBonusOptions(bot, chatId);
 };
 
@@ -181,6 +261,7 @@ const proceedAfterBonusSelection = async (bot, chatId, checkUserExist) => {
       checkUserExist
     );
   } else if (method === "BANK" || method === "EWALLET" || method === "PULSA") {
+    userDepositData[chatId].currentStep = "WAITING_FOR_BANK_SELECTION";
     await promptBankSelection(bot, chatId);
   }
 };
@@ -342,84 +423,139 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   const recipientName = bankDetails.slice(2).join("-").trim();
 
   const amount = userDepositData[chatId].amount;
-  const { payment_category_id, bonusId } = userDepositData[chatId] || {};
+  const { payment_category_id, bonusId, method } = userDepositData[chatId] || {};
   const user = await checkUserExist(chatId);
 
   if (!user) {
-    bot.sendMessage(
-      chatId,
-      "❌ User not found. Please register or log in first."
-    );
+    bot.sendMessage(chatId, "❌ User not found. Please register or log in first.");
     return;
   }
-  
   if (user && user.login) return;
 
+  // Instead of calling /transaksi here, we only store the data:
+  userDepositData[chatId].bankInfo = {
+    accountNumber,
+    bankName,
+    recipientName,
+  };
+  userDepositData[chatId].currentStep = "WAITING_FOR_PROOF";
+
+  // Prompt user to upload proof photo
+  bot.sendMessage(
+    chatId,
+    `✅ You selected <b>${bankName}</b> and entered an amount of <b>IDR ${amount}</b>.\n\n` +
+    `Please upload your deposit proof (transfer receipt screenshot).`,
+    { parse_mode: "HTML" }
+  );
+};
+async function processDepositWithProof(bot, msg, checkUserExist) {
   try {
-    const requestData = {
+    const chatId = msg.chat.id;
+    const userData = userDepositData[chatId];
+    if (!userData) return;
+
+    // Only proceed if waiting for proof:
+    if (userData.currentStep !== "WAITING_FOR_PROOF") {
+      return;
+    }
+
+    // if method is QRIS, skip, etc...
+    if (userData.method === "QRIS") {
+      return;
+    }
+
+    const user = await checkUserExist(chatId);
+    if (!user || user.login) {
+      bot.sendMessage(chatId, "❌ You must be logged in to finish deposit.");
+      delete userDepositData[chatId];
+      return;
+    }
+
+    // Grab the largest photo from Telegram
+    const photos = msg.photo;
+    const largestPhoto = photos[photos.length - 1];
+    const fileId = largestPhoto.file_id;
+
+    // 1) Get the file path from Telegram
+    const file = await bot.getFile(fileId); 
+    const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
+
+    // 2) Instead of downloading, just pass the Telegram URL in JSON
+    const proofImageUrl = fileUrl;
+
+    // 3) Build JSON payload
+    const { amount, payment_category_id, bonusId, bankInfo } = userData;
+    const { bankName, recipientName, accountNumber } = bankInfo || {};
+
+    const payload = {
       user_id: user.id,
       accName: user.accName,
       accNumber: user.accNumber,
       company_code: user.company_code,
-      payment_category_id: payment_category_id || null, 
+      payment_category_id: payment_category_id || "",
       amount,
-      type: 1,
+      type: "1",
       notes: "telegram",
       bankMember: `${user.bank}|${user.accNumber}`,
-      bank_penerima: bankName,
-      nama_penerima: recipientName,
-      nomer_penerima: accountNumber,
-      bonus_id: bonusId || null, 
+      bank_penerima: bankName || "",
+      nama_penerima: recipientName || "",
+      nomer_penerima: accountNumber || "",
+      bonus_id: bonusId || null,
+
+      // The direct link for your server to fetch
+      img: proofImageUrl,
     };
 
-    console.log("📡 Sending Deposit Request:", requestData);
+    // 4) Post JSON to your API
+    const transaksiResponse = await axios.post(
+      `${apiBaseUrl}/transaksi`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-endpoint-secret": API_SECRET,
+        },
+        validateStatus: (status) => [200, 201, 400].includes(status),
+      }
+    );
 
-    const response = await axios.post(`${apiBaseUrl}/transaksi`, requestData, {
-      headers: { "x-endpoint-secret": API_SECRET },
-      validateStatus: (status) => [200, 201, 400].includes(status),
-    });
-
-    const resData = response.data;
-    console.log("💡 API Response:", resData);
-
+    const resData = transaksiResponse.data;
     if (resData.status === 1) {
       bot.sendMessage(
         chatId,
-        `✅ Deposit of <b>IDR ${amount}</b> has been successfully recorded.\n\n` +
-          `🏦 <b>Bank:</b> ${bankName}\n` +
-          `👤 <b>Recipient:</b> ${recipientName}\n` +
-          `🔢 <b>Account Number:</b> ${accountNumber}\n\n` +
-          `👤 <b>Sender Name:</b> ${user.accName}\n` +
-          `🔢 <b>Sender Account Number:</b> ${user.accNumber}\n\n` +
-          `📌 Please proceed with the transfer.`,
-        { parse_mode: "HTML" }
+        `✅ Your deposit (IDR ${amount}) has been successfully recorded.\n` +
+        `Thank you for sending your proof!\n\n` +
+        `We will process your deposit shortly.`
       );
     } else {
-      bot.sendMessage(chatId, `❌ Deposit failed: ${resData.msg}`);
+      bot.sendMessage(
+        chatId,
+        `❌ Deposit submission failed: ${resData.msg || "Unknown error."}`
+      );
     }
   } catch (error) {
-    console.error("❌ Error while calling deposit API:", error.message);
-    if (error.response && error.response.data) {
-      bot.sendMessage(
-        chatId,
-        `❌ Deposit failed: ${
-          error.response.data.msg || "An unknown error occurred."
-        }`
-      );
-    } else {
-      bot.sendMessage(
-        chatId,
-        "❌ An error occurred while processing your deposit. Please try again later."
-      );
+    console.error("Error in processDepositWithProof:", error.message);
+    if (error.response) {
+      console.error("Status:", error.response.status);
+      console.error("Response data:", error.response.data);
     }
+    bot.sendMessage(
+      msg.chat.id,
+      "❌ An error occurred while sending your proof. Please try again."
+    );
+  } finally {
+    // Clear deposit data
+    delete userDepositData[msg.chat.id];
   }
-  delete userDepositData[chatId];
-};
+}
+
 
 module.exports = {
+  userDepositData,
   handleDepositSelection,
   handleDepositAmount,
   handleBonusSelectionCallback,
   processBankDeposit,
   processDepositQRISAmount,
+  processDepositWithProof,
 };
