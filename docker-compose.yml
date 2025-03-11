@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      BOT_TOKEN: "7652915830:AAFvv_Z0SCR3LNlukvHoKv33WF1JUsjG1eo"
+      BOT_TOKEN: "7548403531:AAG1DHdQgZ2mQ1Rv6ci99oYQRFfS-CbYFWM"
       API_URL: "https://api.pwcplay.com"
       MASTER_CODE: "windev"
       COMPANY_CODE: "PWCPLAYDEV"
