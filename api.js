@@ -85,19 +85,17 @@ const checkUserExist = async (chatId, password=null) => {
   });
 
   const data = response.data;
-  console.log(data);
 
   if (data.status === -1) {
     return await userLogin(chatId, data);
   }
 
   if (password !== null) {
-    bot.sendMessage(chatId, 'Login Successful.');
+    console.log(data);
+    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${data.data.saldo}`);
   }
 
   if (data.status === 1 && !data.data) return null;
-
-  console.log(data);
 
   // Status 1 = User exists
   // Status 0 = new User
