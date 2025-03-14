@@ -34,6 +34,10 @@
                 {
                     "name": "API_SECRET",
                     "value": "AbCdEfGh"
+                },
+                {
+                    "name": "NAMA_TOKO",
+                    "value": "PWCPLAY DEMO"
                 }
             ],
             "secrets": [],
