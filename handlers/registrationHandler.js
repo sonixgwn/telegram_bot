@@ -23,7 +23,7 @@ async function handleRegistration(chatId) {
 }
 
 // Handling contact share event for registration
-bot.once("contact", (msg) => {
+bot.on("contact", (msg) => {
   const chatId = msg.chat.id;
   console.log(msg.chat);
   const phoneNumber = msg.contact.phone_number;
