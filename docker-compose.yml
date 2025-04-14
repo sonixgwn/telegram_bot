@@ -13,6 +13,7 @@ services:
       MASTER_CODE: "windev"
       COMPANY_CODE: "PWCPLAYDEV"
       API_SECRET: "AbCdEfGh"
+      NAMA_TOKO: "PWCPLAY Development"
 
     # volumes:
     #   - ${PROJECTS_PATH}:/app
