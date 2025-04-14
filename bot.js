@@ -29,9 +29,9 @@ const {
     master_code,
     company_code,
     API_SECRET,
+    brand
 } = require("./config");
 const bot = require("./botInstance"); // Import shared bot instance
-const nama_toko = process.env.NAMA_TOKO;
 
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
@@ -41,7 +41,7 @@ bot.onText(/\/start/, async (msg) => {
     bot.sendMessage(
         chatId,
         `
-    <b>Selamat Datang di “${nama_toko}”, Telegram Casino.</b>
+    <b>Selamat Datang di “${brand}”, Telegram Casino.</b>
 
     Bermain Slot, Casino, Sepak Bola, dll Langsung di Telegram.
     `,

@@ -7,5 +7,6 @@ module.exports = {
     master_code: process.env.MASTER_CODE,
     company_code: process.env.COMPANY_CODE,
     API_SECRET: process.env.API_SECRET,
+    brand: process.env.NAMA_TOKO
   };
   

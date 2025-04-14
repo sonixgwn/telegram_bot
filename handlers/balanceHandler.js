@@ -15,8 +15,8 @@ async function handleBalance(chatId) {
     const balance = user.saldo;
     const msgB = await bot.sendMessage(
       chatId,
-      `Your current balance is IDR <span class="tg-spoiler">${balance}</span>. Choose an option:
-      Message will be deleted in 20 seconds.`,
+      `Saldo anda IDR <span class="tg-spoiler">${balance}</span>. Silahkan pilih opsi dibawah ini:
+      Pesan ini akan di hapus dalam 20 detik.`,
       {
         reply_markup: {
           inline_keyboard: [

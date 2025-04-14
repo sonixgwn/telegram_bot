@@ -12,7 +12,7 @@ async function showMenu(chatId, password = null) {
       keyboard = [
         [{ text: "🎮 Games" }, { text: "👤 Informasi Akun" }],
         [{ text: "🏦 Saldo" }, { text: "🎁 Bonus & Promosi" }],
-        [{ text: "ℹ️ Information" }],
+        //[{ text: "ℹ️ Information" }],
       ];
     } else {
       keyboard = [

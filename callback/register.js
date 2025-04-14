@@ -1,6 +1,6 @@
 const axios = require("axios");
 const { getAccountListing } = require("../api");
-const { API_SECRET, telegramApiUrl, master_code, company_code } = require("../config");
+const { API_SECRET, telegramApiUrl, master_code, company_code, brand } = require("../config");
 const showMenu = require("../handlers/menuHandler");
 
 let userRegistrationData = {};
@@ -99,9 +99,15 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
           headers: { "x-endpoint-secret": API_SECRET },
         });
 
-        bot.sendMessage(chatId, data.data.msg);
-        console.log(`User registered: ${username}, ${password}, ${phone}, ${bankLabel}, ${accNumber}, ${accName}`);
-        bot.sendMessage(chatId, "Registrasi Berhasil, Selamat Bergabung di “NAMA TOKO”");
+
+        if (data.data.status === 1) {
+          bot.sendMessage(chatId, data.data.msg);
+          console.log(`User registered: ${username}, ${password}, ${phone}, ${bankLabel}, ${accNumber}, ${accName}`);
+          bot.sendMessage(chatId, `Registrasi Berhasil, Selamat Bergabung di ${brand}` );
+        } else {
+          bot.sendMessage(chatId, `Registrasi Anda gagal, ${data.data.msg}. Hubungi Kami di Livechat untuk bantuan.`);
+          console.log(`Registration failed: ${data.data.msg}`);
+        }
 
         showMenu(chatId);
       } catch (error) {

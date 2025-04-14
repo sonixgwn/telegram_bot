@@ -443,8 +443,8 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   // Prompt user to upload proof photo
   bot.sendMessage(
     chatId,
-    `✅ You selected <b>${bankName}</b> and entered an amount of <b>IDR ${amount}</b>.\n\n` +
-    `Please upload your deposit proof (transfer receipt screenshot).`,
+    `✅ Anda telah memilih deposit via <b>${bankName}</b> sebesar <b>IDR ${amount}</b>.\n\n` +
+    `Silahkan mengunggah foto bukti pembayaran Anda.`,
     { parse_mode: "HTML" }
   );
 };
@@ -525,9 +525,7 @@ async function processDepositWithProof(bot, msg, checkUserExist) {
     if (resData.status === 1) {
       bot.sendMessage(
         chatId,
-        `✅ Deposit sebesar (IDR ${amount}) via ${userData.method} telah dibuat.\n` +
-        `Thank you for sending your proof!\n\n` +
-        `We will process your deposit shortly.`
+        `✅ Deposit sebesar (IDR ${amount}) berhasil dibuat. Deposit Anda akan segera diproses.`
       );
     } else {
       bot.sendMessage(
