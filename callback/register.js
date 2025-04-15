@@ -21,6 +21,7 @@ const registerUser = async (bot, phone, chat_id) => {
 
     const username = msg1.text;
     console.log(`Received username: ${username}`);
+    bot.deleteMessage(chat_id, msg1.message_id);
 
     const r2 = await bot.sendMessage(chat_id, "Silahkan Masukan Kata Sandi Anda:", {
       reply_markup: { force_reply: true },
@@ -33,6 +34,7 @@ const registerUser = async (bot, phone, chat_id) => {
 
       const password = msg2.text;
       console.log(`Received password: ${password}`);
+      bot.deleteMessage(chat_id, msg2.message_id);
 
       const banks = await getAccountListing();
 
@@ -66,6 +68,7 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
 
     const accNumber = msg4.text;
     console.log(`Received Account Number: ${accNumber}`);
+    bot.deleteMessage(chatId, msg4.message_id);
 
     const r4 = await bot.sendMessage(chatId, "Silahkan Masukan Nama Rekening Anda:", {
       reply_markup: { force_reply: true },
@@ -76,6 +79,7 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
     bot.onReplyToMessage(chatId, r4.message_id, async (msg5) => {
       const accName = msg5.text;
       console.log(`Received Account Name: ${accName}`);
+      bot.deleteMessage(chatId, msg5.message_id);
 
       const { username, password, phone } = userRegisterData[chatId];
 
