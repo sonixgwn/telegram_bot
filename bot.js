@@ -5,8 +5,6 @@ const path = require("path");
 const QRCode = require("qrcode");
 const {
     userDepositData,
-    handleDepositSelection,
-    processBankDeposit,
     handleDepositAmount,
     processDepositWithProof,
 } = require("./callback/deposit");
@@ -21,44 +19,14 @@ const showMenu = require("./handlers/menuHandler");
 
 const { getSupportMarkup } = require("./utils/supportUtils");
 
-const { getSiteSetting, checkUserExist } = require("./api");
-const {
-    telegramToken,
-    apiBaseUrl,
-    telegramApiUrl,
-    master_code,
-    company_code,
-    API_SECRET,
-    brand
-} = require("./config");
+const { getSiteSetting, checkUserExist, getDepositOptions } = require("./api");
 const bot = require("./botInstance"); // Import shared bot instance
 
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
 
     await getSiteSetting(chatId);
-
-    bot.sendMessage(
-        chatId,
-        `
-    <b>Selamat Datang di “${brand}”, Telegram Casino.</b>
-
-    Bermain Slot, Casino, Sepak Bola, dll Langsung di Telegram.
-    `,
-        {
-            parse_mode: "HTML",
-            // reply_markup: {
-            //   inline_keyboard: [
-            //     [{ text: "Halaman Registrasi", callback_data: "continue" }],
-            //     [{ text: "Permainan", callback_data: "continue" }],
-            //   ],
-            // },
-            reply_markup: {
-                keyboard: [[{ text: "📝 Registration" }, { text: "🎮 Games" }]],
-                resize_keyboard: true,
-            },
-        }
-    );
+    showMenu(chatId, null, true);
 });
 
 bot.onText(/\/menu/, async (msg) => {
@@ -70,20 +38,16 @@ bot.onText(/\/menu/, async (msg) => {
 
 bot.onText(/\/chat/, async (msg) => {
     const chatId = msg.chat.id;
-    ss = await getSiteSetting(chatId);
-    bot.sendMessage(
-        chatId,
-        "Silahkan pilih sarana pelayanan Kami dibawah ini:",
-        await getSupportMarkup(ss.livechat, ss.whatsapp, ss.telegram)
-    );
+    await getSupportMarkup(chatId);
 });
 const commandHandlers = {
-    "🎮 Games": handleGames,
-    "👤 Informasi Akun": handleProfile,
-    "🏦 Saldo": handleBalance,
-    "📝 Registration": handleRegistration,
+    "🎮 Permainan": handleGames,
+    "👤 Profil": handleProfile,
+    "🏦 Informasi Saldo": handleBalance,
+    "📝 Halaman Registrasi": handleRegistration,
     "🎁 Bonus & Promosi": handleBonuses,
-    // "ℹ️ Information": handleInformation,
+    "ℹ️ Bantuan": async (chatId) => await getSupportMarkup(chatId),
+    "➕ Deposit": (chatId) => getDepositOptions(chatId),
     "⬅️ Back": (chatId) => showMenu(chatId),
 };
 bot.on("message", async (msg) => {

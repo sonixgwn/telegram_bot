@@ -1,27 +1,25 @@
 const bot = require("../botInstance"); // Import shared bot instance
-const { checkUserExist } = require("../api");
+const { checkUserExist, getMenuKeyboard } = require("../api");
+const {
+  brand
+} = require("../config");
 
-async function showMenu(chatId, password = null) {
+async function showMenu(chatId, password = null, start = false) {
+  if (start) {
+    const welcomeMessage = `
+    <b>Selamat Datang di “${brand}”, Telegram Casino.</b>
+
+    Bermain Slot, Casino, Sepak Bola, dll Langsung di Telegram.`;
+    bot.sendMessage(chatId, welcomeMessage,
+      {
+          parse_mode: "HTML"
+      });
+  }
   try {
     const user = await checkUserExist(chatId, password);
   
     if (user && user.login) return;
-
-    let keyboard;
-    if (user) {
-      keyboard = [
-        [{ text: "🎮 Games" }, { text: "👤 Informasi Akun" }],
-        [{ text: "🏦 Saldo" }, { text: "🎁 Bonus & Promosi" }],
-        //[{ text: "ℹ️ Information" }],
-      ];
-    } else {
-      keyboard = [
-        // [{ text: "🎮 Games" }, { text: "🎁 Bonus & Promosi" }],
-        // [{ text: "📝 Registration" }],
-        // [{ text: "ℹ️ Information" }],
-        [{ text: "📝 Registration" }, { text: "🎮 Games" }],
-      ];
-    }
+    const keyboard = getMenuKeyboard(user);
     
     bot.sendMessage(chatId, "Silakan pilih opsi berikut :", {
       reply_markup: {

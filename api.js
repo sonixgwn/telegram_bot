@@ -73,6 +73,35 @@ const userLogin = async (chatId, data) => {
   };
 };
 
+const getMenuKeyboard = (user) => {
+  let keyboard;
+  if (user) {
+    keyboard = [
+      [{ text: "🎮 Permainan" }, { text: "🎁 Bonus & Promosi" }],
+      [{ text: "➕ Deposit" }, { text: "🏦 Informasi Saldo" }],
+      [{ text: "👤 Profil" }, { text: "ℹ️ Bantuan" }],
+    ];
+  } else {
+    keyboard = [
+      [{ text: "📝 Halaman Registrasi" }, { text: "🎮 Permainan" }],
+    ];
+  }
+  return keyboard;
+}
+
+const getDepositOptions = (chatId) => {
+  const depositMethodsKeyboard = [
+    [{ text: "📱 QRIS", callback_data: "deposit_qris" }],
+    [{ text: "🏦 BANK", callback_data: "deposit_bank" }],
+    [{ text: "💳 E-WALLET", callback_data: "deposit_ewallet" }],
+    [{ text: "📶 PULSA", callback_data: "deposit_pulsa" }],
+  ];
+
+  bot.sendMessage(chatId, "💳 Silahkan pilih metode pembayaran Deposit Anda:", {
+    reply_markup: { inline_keyboard: depositMethodsKeyboard },
+  });
+}
+
 const checkUserExist = async (chatId, password=null) => {
   const response = await axios.post(`${telegramApiUrl}`, {
     method: "check",
@@ -91,8 +120,13 @@ const checkUserExist = async (chatId, password=null) => {
   }
 
   if (password !== null) {
-    console.log(data);
-    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${data.data.saldo}`);
+    const keyboard = getMenuKeyboard(data.data);
+    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${data.data.saldo}`, {
+      reply_markup: {
+        keyboard,
+        resize_keyboard: true,
+      },
+    });
   }
 
   if (data.status === 1 && !data.data) return null;
@@ -102,4 +136,4 @@ const checkUserExist = async (chatId, password=null) => {
   return {...data.data, status: 1};
 };
 
-module.exports = { getSiteSetting, getAccountListing, userLogin, checkUserExist };
+module.exports = { getSiteSetting, getAccountListing, userLogin, checkUserExist, getMenuKeyboard, getDepositOptions };

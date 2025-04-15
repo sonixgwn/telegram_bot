@@ -6,7 +6,7 @@ const {
     handleBonusSelectionCallback,
 } = require("../callback/deposit");
 const handleWithdrawFunds = require("../callback/withdraw");
-const { checkUserExist } = require("../api");
+const { checkUserExist, getDepositOptions } = require("../api");
 const bot = require("../botInstance"); // Ensure correct import
 const { API_SECRET, apiBaseUrl, telegramApiUrl } = require("../config");
 const { completeRegistration } = require("../callback/register");
@@ -26,16 +26,7 @@ const callbackHandlers = {
     continue: async (chatId) => showMenu(chatId),
 
     deposit_to_account: async (chatId) => {
-        const depositMethodsKeyboard = [
-            [{ text: "📱 QRIS", callback_data: "deposit_qris" }],
-            [{ text: "🏦 BANK", callback_data: "deposit_bank" }],
-            [{ text: "💳 E-WALLET", callback_data: "deposit_ewallet" }],
-            [{ text: "📶 PULSA", callback_data: "deposit_pulsa" }],
-        ];
-
-        bot.sendMessage(chatId, "💳 Silahkan pilih metode pembayaran Deposit Anda:", {
-            reply_markup: { inline_keyboard: depositMethodsKeyboard },
-        });
+        getDepositOptions(chatId);
     },
 
     withdraw_funds: async (chatId) => {
