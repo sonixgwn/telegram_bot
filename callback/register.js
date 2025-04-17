@@ -125,7 +125,60 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
   });
 };
 
+const syncAccount = async (bot, phone, chatId) => {
+  console.log(`Syncing account with userCode: ${phone} and chatId: ${chatId}`);
+
+  const loading = await bot.sendMessage(chatId, "🔍 Akun sedang dicari...");
+  
+  const data = await axios.post(telegramApiUrl, {
+    method: "sync_account",
+    chat_id: chatId,
+    data: {
+      phone,
+    },
+  }, {
+    headers: { "x-endpoint-secret": API_SECRET },
+  });
+
+  if (data.data.status === 1) {
+    bot.deleteMessage(chatId, loading.message_id);
+
+    const response = await bot.sendMessage(chatId, data.data.msg, {
+      reply_markup: { force_reply: true },
+    });
+
+    bot.onReplyToMessage(chatId, response.message_id, async (msg) => {
+      if (data.data.sync) {
+        const password = msg.text;
+        bot.deleteMessage(chatId, msg.message_id);
+
+        const loginData = await axios.post(telegramApiUrl, {
+          method: "sync_account_confirm",
+          chat_id: chatId,
+          data: {
+            phone
+          },
+          password
+        }, {
+          headers: { "x-endpoint-secret": API_SECRET },
+        });
+
+        if (loginData.data.status === 1) {
+          bot.sendMessage(chatId, loginData.data.msg);
+          showMenu(chatId);
+        } else {
+          bot.sendMessage(chatId, `Sync Gagal: ${loginData.data.msg}`);
+          console.log(`Sync failed: ${loginData.data.msg}`);
+        }
+      }
+    });
+
+    
+  }
+}
+
 module.exports = {
   registerUser,
   completeRegistration,
+  syncAccount
 };

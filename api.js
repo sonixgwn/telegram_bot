@@ -61,7 +61,6 @@ const userLogin = async (chatId, data) => {
 
   bot.onReplyToMessage(chatId, r1.message_id, async (msg1) => {
     const password = msg1.text;
-    console.log(`Received password: ${password}`);
 
     delete userLoginData[chatId];
     
@@ -83,6 +82,7 @@ const getMenuKeyboard = (user) => {
     ];
   } else {
     keyboard = [
+      [{ text: "🔄 Hubungkan Akun" }],
       [{ text: "📝 Halaman Registrasi" }, { text: "🎮 Permainan" }],
     ];
   }

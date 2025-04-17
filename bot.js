@@ -1,8 +1,4 @@
 require("dotenv").config();
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const QRCode = require("qrcode");
 const {
     userDepositData,
     handleDepositAmount,
@@ -11,7 +7,7 @@ const {
 const handleGames = require("./handlers/gamesHandler");
 const handleProfile = require("./handlers/profileHandler");
 const handleBalance = require("./handlers/balanceHandler");
-const handleRegistration = require("./handlers/registrationHandler");
+const { handleRegistration, handleSyncAccount } = require("./handlers/registrationHandler");
 const handleCallbackQuery = require("./handlers/callbackHandlers");
 const handleBonuses = require("./handlers/bonusesHandler");
 
@@ -44,6 +40,7 @@ const commandHandlers = {
     "🎮 Permainan": handleGames,
     "👤 Profil": handleProfile,
     "🏦 Informasi Saldo": handleBalance,
+    "🔄 Hubungkan Akun": handleSyncAccount,
     "📝 Halaman Registrasi": handleRegistration,
     "🎁 Bonus & Promosi": handleBonuses,
     "ℹ️ Bantuan": async (chatId) => await getSupportMarkup(chatId),
