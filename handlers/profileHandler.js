@@ -5,7 +5,7 @@ const { getSupportMarkup } = require("../utils/supportUtils");
 async function handleProfile(chatId) {
   const user = await checkUserExist(chatId);
   if (!user) {
-    return bot.sendMessage(chatId, "You are not registered. Please register first.");
+    return bot.sendMessage(chatId, "Akun Anda belum terdaftar. Harap melakukan pendaftaran terlebih dahulu.");
   }
   
   if (user && user.login) return;

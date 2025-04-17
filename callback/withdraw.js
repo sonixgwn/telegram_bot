@@ -13,7 +13,7 @@ async function handleWithdrawFunds(bot, chatId) {
     // Check if user exists
     const user = await checkUserExist(chatId);
     if (!user) {
-        bot.sendMessage(chatId, "You are not registered. Please register first.");
+        bot.sendMessage(chatId, "Akun Anda belum terdaftar. Harap melakukan pendaftaran terlebih dahulu.");
         return;
     }
   

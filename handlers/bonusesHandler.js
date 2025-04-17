@@ -41,7 +41,7 @@ const handleBonuses = async (chatId) => {
     bot.sendMessage(chatId, message, { parse_mode: "HTML" });
   } catch (error) {
     console.error("❌ Error fetching bonuses:", error.message);
-    bot.sendMessage(chatId, "❌ Failed to retrieve bonuses. Please try again later.");
+    bot.sendMessage(chatId, "❌ Gagal mengambil data bonus. Silakan coba lagi.");
   }
 };
 

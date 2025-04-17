@@ -76,16 +76,16 @@ async function handleProofOfPayment(bot, msg, checkUserExist) {
     if (proofData.status === 1) {
       bot.sendMessage(
         chatId,
-        "✅ Proof of deposit has been uploaded successfully!\nThank you."
+        "✅ Bukti deposit berhasil diupload!\nTerima kasih."
       );
     } else {
-      bot.sendMessage(chatId, `❌ Failed to upload proof: ${proofData.msg}`);
+      bot.sendMessage(chatId, `❌ Gagal menupload bukti deposit: ${proofData.msg}`);
     }
   } catch (error) {
     console.error("Error uploading proof:", error.message);
     bot.sendMessage(
       chatId,
-      "❌ There was an error uploading the proof. Please try again later."
+      "❌ Terjadi kesalahan saat mengunggah bukti pembayaran. Silahkan coba lagi."
     );
   } finally {
     // Clear the deposit flow so we don't keep waiting for more proofs
@@ -206,7 +206,7 @@ const showBonusOptions = async (bot, chatId) => {
     console.error("Error fetching bonus:", error.message);
     bot.sendMessage(
       chatId,
-      "Failed to retrieve bonus. Proceeding without bonus..."
+      "Gagal mengambil data bonus. Melanjutkan tanpa bonus..."
     );
     proceedAfterBonusSelection(bot, chatId);
   }
@@ -322,7 +322,7 @@ const promptBankSelection = async (bot, chatId) => {
     console.error("Error fetching bank details:", error.message);
     bot.sendMessage(
       chatId,
-      "Failed to retrieve payment details. Please try again later."
+      "Gagal mengambil detail pembayaran. Silahkan coba lagi."
     );
   }
 };

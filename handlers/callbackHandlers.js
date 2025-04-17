@@ -89,7 +89,7 @@ const callbackHandlers = {
             console.error("Error fetching providers:", error.message);
             bot.sendMessage(
                 chatId,
-                "Failed to fetch providers. Please try again later."
+                "Gagal mengambil daftar provider. Silakan coba lagi."
             );
         }
     },
@@ -136,7 +136,7 @@ const callbackHandlers = {
             console.error("Error fetching games:", error.message);
             bot.sendMessage(
                 chatId,
-                "Failed to fetch games. Please try again later."
+                "Gagal mengambil daftar permainan. Silakan coba lagi."
             );
         }
     },
@@ -155,7 +155,7 @@ const callbackHandlers = {
         if (!user) {
             bot.sendMessage(
                 chatId,
-                "You are not registered. Please register first."
+                "Akun Anda belum terdaftar. Harap melakukan pendaftaran terlebih dahulu."
             );
             return;
         }
@@ -260,14 +260,14 @@ const callbackHandlers = {
             } else {
                 bot.sendMessage(
                     chatId,
-                    "Failed to launch the game. Please try again later."
+                    "Gagal meluncurkan permainan. Silakan coba lagi."
                 );
             }
         } catch (error) {
             console.error("Error launching game:", error.message);
             bot.sendMessage(
                 chatId,
-                "Error launching the game. Please try again later."
+                "Gagal meluncurkan permainan. Silakan coba lagi."
             );
         }
     },
@@ -324,7 +324,7 @@ const callbackHandlers = {
             console.error("Error fetching providers:", error.message);
             bot.sendMessage(
                 chatId,
-                "Failed to fetch providers. Please try again later."
+                "Gagal mengambil daftar provider. Silakan coba lagi."
             );
         }
     },
@@ -339,7 +339,7 @@ const callbackHandlers = {
         if (!user) {
             bot.sendMessage(
                 chatId,
-                "You are not registered. Please register first."
+                "Akun Anda belum terdaftar. Harap melakukan pendaftaran terlebih dahulu."
             );
             return;
         }
@@ -430,7 +430,7 @@ const callbackHandlers = {
             console.error("Error fetching game details:", error.message);
             bot.sendMessage(
                 chatId,
-                "Failed to fetch game details. Please try again later."
+                "Gagal mengambil daftar permainan. Silakan coba lagi."
             );
         }
     },

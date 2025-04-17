@@ -33,7 +33,7 @@ async function handleBalance(chatId) {
     }, 20000);
   } catch (error) {
     console.error("Error fetching balance:", error.message);
-    bot.sendMessage(chatId, "Failed to retrieve balance. Please try again later.");
+    bot.sendMessage(chatId, "Gagal mengambil saldo. Silakan coba lagi.");
   }
 }
 

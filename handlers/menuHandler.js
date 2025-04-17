@@ -29,7 +29,7 @@ async function showMenu(chatId, password = null, start = false) {
     });
   } catch (error) {
     console.error("Error fetching menu:", error.message);
-    bot.sendMessage(chatId, "Failed to fetch data. Please try again later.");
+    bot.sendMessage(chatId, "Gagal mengambil data. Silakan coba lagi.");
   }
 }
 

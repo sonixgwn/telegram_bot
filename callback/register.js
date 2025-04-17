@@ -116,7 +116,7 @@ const completeRegistration = async (bot, chatId, bankLabel) => {
         showMenu(chatId);
       } catch (error) {
         console.error("Error registering user:", error.message);
-        bot.sendMessage(chatId, "Failed to register user. Please try again later.");
+        bot.sendMessage(chatId, "Gagal mendaftarkan pengguna. Silakan coba lagi nanti.");
       }
 
       delete userRegistrationData[chatId];
