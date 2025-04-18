@@ -169,11 +169,44 @@ const syncAccount = async (bot, phone, chatId) => {
         } else {
           bot.sendMessage(chatId, `Sync Gagal: ${loginData.data.msg}`);
           console.log(`Sync failed: ${loginData.data.msg}`);
+          showMenu(chatId);
         }
+      } else {
+        const username = msg.text;
+        bot.deleteMessage(chatId, msg.message_id);
+
+        const followupMessage = await bot.sendMessage(chatId, "Silahkan Masukan Kata Sandi Anda:", {
+          reply_markup: { force_reply: true },
+        });
+
+        bot.onReplyToMessage(chatId, followupMessage.message_id, async (msg2) => {
+          const password = msg2.text;
+          bot.deleteMessage(chatId, msg2.message_id);
+
+          const syncData = await axios.post(telegramApiUrl, {
+            method: "sync_account_connect",
+            chat_id: chatId,
+            data: {
+              phone,
+              username,
+              password
+            },
+            password
+          }, {
+            headers: { "x-endpoint-secret": API_SECRET },
+          });
+
+          if (syncData.data.status === 1) {
+            bot.sendMessage(chatId, syncData.data.msg);
+            showMenu(chatId);
+          } else {
+            bot.sendMessage(chatId, `Login Gagal: ${syncData.data.msg}`);
+            console.log(`Login failed: ${syncData.data.msg}`);
+            showMenu(chatId);
+          }
+        });
       }
     });
-
-    
   }
 }
 
