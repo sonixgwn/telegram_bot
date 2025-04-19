@@ -84,6 +84,7 @@ const getMenuKeyboard = (user) => {
     keyboard = [
       [{ text: "🔄 Hubungkan Akun" }],
       [{ text: "📝 Halaman Registrasi" }, { text: "🎮 Permainan" }],
+      [{ text: "ℹ️ Bantuan" }],
     ];
   }
   return keyboard;
