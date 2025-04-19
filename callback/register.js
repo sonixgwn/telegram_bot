@@ -167,7 +167,7 @@ const syncAccount = async (bot, phone, chatId) => {
           bot.sendMessage(chatId, loginData.data.msg);
           showMenu(chatId);
         } else {
-          bot.sendMessage(chatId, `Sync Gagal: ${loginData.data.msg}`);
+          bot.sendMessage(chatId, loginData.data.msg);
           console.log(`Sync failed: ${loginData.data.msg}`);
           showMenu(chatId);
         }
@@ -200,7 +200,7 @@ const syncAccount = async (bot, phone, chatId) => {
             bot.sendMessage(chatId, syncData.data.msg);
             showMenu(chatId);
           } else {
-            bot.sendMessage(chatId, `Login Gagal: ${syncData.data.msg}`);
+            bot.sendMessage(chatId, syncData.data.msg);
             console.log(`Login failed: ${syncData.data.msg}`);
             showMenu(chatId);
           }
