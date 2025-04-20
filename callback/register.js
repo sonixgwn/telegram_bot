@@ -165,9 +165,7 @@ const syncAccount = async (bot, phone, chatId) => {
 
         if (loginData.data.status === 1) {
           bot.sendMessage(chatId, loginData.data.msg);
-          setTimeout(() => {
-            showMenu(chatId);
-          }, 1000);
+          showMenu(chatId);
         } else {
           bot.sendMessage(chatId, loginData.data.msg);
           console.log(`Sync failed: ${loginData.data.msg}`);
@@ -200,9 +198,7 @@ const syncAccount = async (bot, phone, chatId) => {
 
           if (syncData.data.status === 1) {
             bot.sendMessage(chatId, syncData.data.msg);
-            setTimeout(() => {
-              showMenu(chatId);
-            }, 1000);
+            showMenu(chatId);
           } else {
             bot.sendMessage(chatId, syncData.data.msg);
             console.log(`Login failed: ${syncData.data.msg}`);
