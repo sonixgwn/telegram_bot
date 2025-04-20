@@ -33,6 +33,12 @@ const callbackHandlers = {
         await handleWithdrawFunds(bot, chatId);
     },
     deposit_: async (chatId, data) => {
+        const user = await checkUserExist(chatId);
+        if (!user) {
+            bot.sendMessage(chatId, "❌ User not found. Please register or log in first.");
+            return;
+        }
+
         handleDepositSelection(bot, chatId, data);
     },
 

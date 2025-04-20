@@ -443,10 +443,10 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   // Prompt user to upload proof photo
   bot.sendMessage(
     chatId,
-    `✅ Anda telah memilih deposit via <b>${bankName}</b> sebesar <b>IDR ${amount}</b>.\n` +
+    `✅ Anda telah memilih deposit via <b>${bankName}</b> sebesar <b>IDR ${amount}</b>.\n\n` +
     `BANK TUJUAN: ${bankName}\n` +
     `NOMOR PENERIMA: ${accountNumber}\n` +
-    `NAMA PENERIMA: ${recipientName}\n` +
+    `NAMA PENERIMA: ${recipientName}\n\n` +
     `Silahkan mengunggah foto bukti pembayaran Anda.`,
     { parse_mode: "HTML" }
   );

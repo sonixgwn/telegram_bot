@@ -20,7 +20,7 @@ async function handleWithdrawFunds(bot, chatId) {
     if (user && user.login) return;
 
     // Prompt for withdrawal amount
-    bot.sendMessage(chatId, "Silahkan masukkan jumlah withdraw:");
+    bot.sendMessage(chatId, "Silahkan masukan jumlah withdraw:");
 
     // Listen for the user's next message (in the same chat)
     bot.once("message", async (msg) => {
@@ -28,7 +28,7 @@ async function handleWithdrawFunds(bot, chatId) {
 
         const amount = parseFloat(msg.text);
         if (isNaN(amount) || amount <= 0) {
-            bot.sendMessage(chatId, "Silahkan masukkan jumlah withdraw yang valid:");
+            bot.sendMessage(chatId, "Silahkan masukan jumlah withdraw yang valid:");
             return;
         }
         try {
