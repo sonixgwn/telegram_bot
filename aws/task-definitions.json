@@ -21,7 +21,7 @@
                 },
                 {
                     "name": "API_URL",
-                    "value": "http://pwc-ms-cluster-alb-1495802723.ap-southeast-2.elb.amazonaws.com"
+                    "value": "https://api-prod.pwcplay.net"
                 },
                 {
                     "name": "MASTER_CODE",
