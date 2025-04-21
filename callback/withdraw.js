@@ -3,6 +3,7 @@
 const axios = require("axios");
 const { checkUserExist } = require("../api");
 const { API_SECRET, apiBaseUrl, telegramApiUrl, company_code } = require("../config");
+const { moneyFormat } = require("../utils/helpers");
 
 /**
  * Asks the user for a withdrawal amount and submits it to your API.
@@ -32,7 +33,7 @@ async function handleWithdrawFunds(bot, chatId) {
             return;
         }
         try {
-            bot.sendMessage(chatId, "Silahkan tunggu sebentar, sedang memproses withdraw...");
+            bot.sendMessage(chatId, "Withdraw sedang dalam proses validasi, Mohon menunggu.");
             const response = await axios.post(
                 `${telegramApiUrl}`,
                 {
@@ -63,8 +64,7 @@ async function handleWithdrawFunds(bot, chatId) {
             
             bot.sendMessage(
                 chatId,
-                `✅ Withdrawal successful!\n\n` +
-                `Withdrawn Amount: ${amount}\n`
+                `✅ Withdraw sebesar IDR ${moneyFormat(amount)} behasil dibuat. Mohon menunggu konfirmasi selanjutnya. Terima Kasih`
             );
         } catch (error) {
             console.error("❌ Error while calling withdraw API:", error.message);

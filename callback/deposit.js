@@ -4,6 +4,7 @@ const path = require("path");
 const QRCode = require("qrcode");
 const { apiBaseUrl, API_SECRET } = require("../config");
 const FormData = require("form-data");
+const { moneyFormat } = require("../utils/helpers");
 
 // In-memory storage for deposit flows per chatId
 let userDepositData = {};
@@ -315,7 +316,7 @@ const promptBankSelection = async (bot, chatId) => {
 
     bot.sendMessage(
       chatId,
-      `Anda mengajukan nominal deposit sebesar ${amount}.\nSilahkan pilih platform penyedia ${method} untuk pembayaran :`,
+      `Anda mengajukan nominal deposit sebesar IDR ${moneyFormat(amount)}.\nSilahkan pilih platform penyedia ${method} untuk pembayaran :`,
       bankOptions
     );
   } catch (error) {
@@ -377,7 +378,7 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
       });
 
       await bot.sendPhoto(chatId, filePath, {
-        caption: `Deposit sebesar ${amount} via QRIS telah dibuat dan berlaku selama 5 Menit, Silahkan lakukan pembayaran.`,
+        caption: `Deposit sebesar IDR ${moneyFormat(amount)} via QRIS telah dibuat dan berlaku selama 5 Menit, Silahkan lakukan pembayaran.`,
         parse_mode: "HTML",
       });
 
@@ -528,7 +529,7 @@ async function processDepositWithProof(bot, msg, checkUserExist) {
     if (resData.status === 1) {
       bot.sendMessage(
         chatId,
-        `✅ Deposit sebesar (IDR ${amount}) berhasil dibuat. Deposit Anda akan segera diproses.`
+        `✅ Deposit sebesar (IDR ${moneyFormat(amount)}) berhasil dibuat. Deposit Anda akan segera diproses.`
       );
     } else {
       bot.sendMessage(

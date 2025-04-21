@@ -1,5 +1,6 @@
 const bot = require("../botInstance"); // Import shared bot instance
 const { checkUserExist } = require("../api");
+const { moneyFormat } = require("../utils/helpers.js");
 
 async function handleBalance(chatId) {
   try {
@@ -15,7 +16,7 @@ async function handleBalance(chatId) {
     const balance = user.saldo;
     const msgB = await bot.sendMessage(
       chatId,
-      `Saldo anda IDR <span class="tg-spoiler">${balance}</span>. Silahkan pilih opsi dibawah ini:
+      `Saldo anda IDR <span class="tg-spoiler">${moneyFormat(balance)}</span>. Silahkan pilih opsi dibawah ini:
       Pesan ini akan di hapus dalam 20 detik.`,
       {
         reply_markup: {
