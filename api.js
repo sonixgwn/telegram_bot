@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { telegramToken, apiBaseUrl, telegramApiUrl, master_code, company_code, API_SECRET } = require("./config");
 const bot = require("./botInstance"); // Import shared bot instance
+const { moneyFormat } = require("./utils/helpers");
 
 
 const getSiteSetting = async (chat_id) => {
@@ -122,7 +123,7 @@ const checkUserExist = async (chatId, password=null) => {
 
   if (password !== null) {
     const keyboard = getMenuKeyboard(data.data);
-    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${data.data.saldo}`, {
+    bot.sendMessage(chatId, `Login Berhasil, Selamat Datang Kembali ${data.data.username}\n\nSaldo Anda saat ini: ${moneyFormat(data.data.saldo)}`, {
       reply_markup: {
         keyboard,
         resize_keyboard: true,
