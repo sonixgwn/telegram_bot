@@ -292,24 +292,38 @@ const promptBankSelection = async (bot, chatId) => {
     }
 
     const filteredBanks = banks.filter(
-      (bank) => String(bank.payment_category_id) === String(payment_category_id)
+      (bank) =>
+      String(bank.payment_category_id) === String(payment_category_id) &&
+      amount >= bank.minimal_deposit &&
+      amount <= bank.maximum_deposit
     );
 
     if (filteredBanks.length === 0) {
       bot.sendMessage(
         chatId,
-        "No available payment methods for your selection."
+        "Tidak ada rekening yang tersedia untuk deposit dengan nominal ini. Silahkan coba lagi atau hubungi Livechat."
       );
       return;
     }
 
+    // Store additional bank details in userDepositData to avoid long callback_data
+    userDepositData[chatId].bankDetails = filteredBanks.reduce((acc, bank) => {
+      acc[`${bank.no_rek}-${bank.nama_bank}`] = {
+        recipientName: bank.nama_penerima,
+        minimalDeposit: bank.minimal_deposit,
+        maximumDeposit: bank.maximum_deposit,
+      };
+      return acc;
+    }, {});
+
     const bankOptions = {
       reply_markup: {
-        inline_keyboard: filteredBanks.map((bank) => [
-          {
-            text: `${bank.nama_bank} - ${bank.nama_penerima}`,
-            callback_data: `bank_selected-${bank.no_rek}-${bank.nama_bank}-${bank.nama_penerima}`,
-          },
+      inline_keyboard: filteredBanks
+        .map((bank) => [
+        {
+          text: `${bank.nama_bank} - ${bank.nama_penerima}`,
+          callback_data: `bank_selected-${bank.no_rek}-${bank.nama_bank}`,
+        },
         ]),
       },
     };
@@ -414,17 +428,27 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   if (!userDepositData[chatId]) return;
 
   const bankDetails = bankData.split("-");
-  if (bankDetails.length < 3) {
-    bot.sendMessage(chatId, "❌ Invalid bank selection. Please try again.");
+  const bankKey = `${bankDetails[0]}-${bankDetails[1]}`;
+  const selectedBank = userDepositData[chatId].bankDetails[bankKey];
+
+  if (!selectedBank) {
+    bot.sendMessage(chatId, "❌ Bank yang dipilih tidak tersedia. Silahkan coba lagi.");
     return;
   }
 
+  const { recipientName, minimalDeposit, maximumDeposit } = selectedBank;
   const accountNumber = bankDetails[0];
   const bankName = bankDetails[1];
-  const recipientName = bankDetails.slice(2).join("-").trim();
-
   const amount = userDepositData[chatId].amount;
-  const { payment_category_id, bonusId, method } = userDepositData[chatId] || {};
+
+  if (amount < minimalDeposit || amount > maximumDeposit) {
+    bot.sendMessage(
+      chatId,
+      `❌ Jumlah deposit harus diantara IDR ${moneyFormat(minimalDeposit)} dan IDR ${moneyFormat(maximumDeposit)}.`
+    );
+    return;
+  }
+
   const user = await checkUserExist(chatId);
 
   if (!user) {
