@@ -360,6 +360,38 @@ const processDepositQRISAmount = async (bot, chatId, text, checkUserExist) => {
   if (user && user.login) return;
 
   try {
+    const bankResponse = await axios.get(`${apiBaseUrl}/getBanks`, {
+      headers: { "x-endpoint-secret": API_SECRET },
+    });
+
+    let banks = bankResponse.data.data;
+    
+    banks = banks.filter((bank) => String(bank.payment_category_id) === String(payment_category_id));
+
+    if (banks.length === 0) {
+      bot.sendMessage(
+      chatId,
+      "❌ metode deposit QRIS sedang tidak tersedia. Silahkan coba metode pembayaran lain."
+      );
+      return;
+    } else if (banks.length > 1) {
+      bot.sendMessage(
+      chatId,
+      "❌ Terjadi kesalahan: Silahkan hubungi bantuan Livechat atau coba metode pembayaran lain. [ERR-FATAL-QRIS]"
+      );
+      return;
+    }
+
+    const qrisData = banks[0];
+
+    if (amount < qrisData.minimal_deposit || amount > qrisData.maximum_deposit) {
+    bot.sendMessage(
+        chatId,
+        `❌ Jumlah deposit harus diantara IDR ${moneyFormat(qrisData.minimal_deposit)} dan IDR ${moneyFormat(qrisData.maximum_deposit)}.`
+      );
+      return;
+    }
+
     const response = await axios.post(
       `${apiBaseUrl}/transaksi`,
       {
@@ -507,8 +539,6 @@ async function processDepositWithProof(bot, msg, checkUserExist) {
     // 1) Get the file path from Telegram
     const file = await bot.getFile(fileId); 
     const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
-
-    console.log(fileUrl);
 
     // 2) Instead of downloading, just pass the Telegram URL in JSON
     const proofImageUrl = fileUrl;
