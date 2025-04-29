@@ -32,6 +32,7 @@ async function handleWithdrawFunds(bot, chatId) {
             bot.sendMessage(chatId, "Silahkan masukan jumlah withdraw yang valid:");
             return;
         }
+        
         try {
             bot.sendMessage(chatId, "Withdraw sedang dalam proses validasi, Mohon menunggu.");
             const response = await axios.post(
