@@ -141,7 +141,7 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
 const showBonusOptions = async (bot, chatId) => {
   try {
     // 1) Get the user's chosen payment_category_id from session
-    const { payment_category_id } = userDepositData[chatId];
+    const { payment_category_id, amount } = userDepositData[chatId];
 
     // 2) Fetch the /bonusesPayment mapping
     const responseBonusPayment = await axios.get(`${apiBaseUrl}/bonusesPayment`, {
@@ -158,7 +158,7 @@ const showBonusOptions = async (bot, chatId) => {
     if (!matchedBonusPayments || matchedBonusPayments.length === 0) {
       bot.sendMessage(
         chatId,
-        "No relevant bonuses available for your selected payment method. Proceeding without bonus..."
+        "Tidak ada bonus yang relevan tersedia untuk metode pembayaran yang Anda pilih. Melanjutkan tanpa bonus..."
       );
       return proceedAfterBonusSelection(bot, chatId);
     }
@@ -173,14 +173,15 @@ const showBonusOptions = async (bot, chatId) => {
     //    (bonusPayment.bonus_id should match bonus.id)
     const validBonusIds = matchedBonusPayments.map((bp) => String(bp.bonus_id));
     const relevantBonuses = bonusesData.filter((bonus) =>
-      validBonusIds.includes(String(bonus.id))
+      validBonusIds.includes(String(bonus.id)) &&
+      amount >= bonus.min_deposit
     );
 
     // If still no matched bonus, skip
     if (!relevantBonuses || relevantBonuses.length === 0) {
       bot.sendMessage(
         chatId,
-        "No relevant bonuses found for your selection. Proceeding without bonus..."
+        "Tidak ada bonus yang relevan untuk pilihan Anda. Melanjutkan tanpa bonus..."
       );
       return proceedAfterBonusSelection(bot, chatId);
     }
