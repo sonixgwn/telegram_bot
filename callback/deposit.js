@@ -460,8 +460,7 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   if (!userDepositData[chatId]) return;
 
   const bankDetails = bankData.split("-");
-  const bankKey = `${bankDetails[0]}-${bankDetails[1]}`;
-  const selectedBank = userDepositData[chatId].bankDetails[bankKey];
+  const selectedBank = userDepositData[chatId].bankDetails[bankData];
 
   if (!selectedBank) {
     bot.sendMessage(chatId, "❌ Bank yang dipilih tidak tersedia. Silahkan coba lagi.");
@@ -469,8 +468,8 @@ const processBankDeposit = async (bot, chatId, bankData, checkUserExist) => {
   }
 
   const { recipientName, minimalDeposit, maximumDeposit } = selectedBank;
-  const accountNumber = bankDetails[0];
-  const bankName = bankDetails[1];
+  const accountNumber = bankDetails.slice(0, -1).join("-");
+  const bankName = bankDetails[bankDetails.length - 1];
   const amount = userDepositData[chatId].amount;
 
   if (amount < minimalDeposit || amount > maximumDeposit) {
