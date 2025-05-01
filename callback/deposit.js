@@ -17,82 +17,6 @@ const depositMethods = {
   deposit_pulsa: { method: "PULSA", payment_category_id: 3 },
 };
 
-/**
- * Step 1: Handle deposit method selection
- */
-async function handleProofOfPayment(bot, msg, checkUserExist) {
-  const chatId = msg.chat.id;
-  const userData = userDepositData[chatId];
-
-  // If there's no deposit info or no transaction ID, user isn't in "awaiting proof" state
-  if (!userData || !userData.transactionId) {
-    return; // We either ignore or inform the user
-  }
-
-  const user = await checkUserExist(chatId);
-  if (!user) {
-    bot.sendMessage(chatId, "User not recognized, please /start or /login first.");
-    return;
-  }
-  if (user && user.login) return;
-
-  // The photo array is sorted by size, so let's grab the last (largest) photo
-  const photos = msg.photo;
-  const largestPhoto = photos[photos.length - 1];
-  const fileId = largestPhoto.file_id;
-
-  try {
-    // 1) Retrieve the file path from Telegram
-    const file = await bot.getFile(fileId); // getFile returns { file_id, file_path, ... }
-
-    // 2) Telegram's file download URL => "https://api.telegram.org/file/bot<TOKEN>/<file_path>"
-    //    But you can let the library handle it, or download via an HTTP request yourself.
-    //    Some libraries (like node-telegram-bot-api) let you do: bot.downloadFile(fileId, downloadPath).
-
-    const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
-
-    // 3) Download the image from Telegram
-    const response = await axios.get(fileUrl, { responseType: "arraybuffer" });
-    const fileBuffer = response.data;
-
-    // 4) Now build FormData for sending to your backend.
-    const form = new FormData();
-    form.append("transaction_id", userData.transactionId);
-    form.append("user_id", user.id);
-    // Suppose your backend expects the field name to be "proof_image"
-    form.append("proof_image", fileBuffer, {
-      filename: `proof_${Date.now()}.jpg`, 
-      contentType: "image/jpeg",
-    });
-
-    // 5) Post to your backend
-    const proofResponse = await axios.post(`${apiBaseUrl}/uploadProof`, form, {
-      headers: {
-        "x-endpoint-secret": API_SECRET,
-        ...form.getHeaders(), // required for multipart/form-data boundary
-      },
-    });
-
-    const proofData = proofResponse.data;
-    if (proofData.status === 1) {
-      bot.sendMessage(
-        chatId,
-        "✅ Bukti deposit berhasil diupload!\nTerima kasih."
-      );
-    } else {
-      bot.sendMessage(chatId, `❌ Gagal menupload bukti deposit: ${proofData.msg}`);
-    }
-  } catch (error) {
-    console.error("Error uploading proof:", error.message);
-    bot.sendMessage(
-      chatId,
-      "❌ Terjadi kesalahan saat mengunggah bukti pembayaran. Silahkan coba lagi."
-    );
-  } finally {
-    // Clear the deposit flow so we don't keep waiting for more proofs
-    delete userDepositData[chatId];
-  }
-}
 const handleDepositSelection = async (bot, chatId, data) => {
   const depositInfo = depositMethods[data];
 
@@ -132,13 +56,13 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
   userDepositData[chatId].amount = amount;
   userDepositData[chatId].currentStep = "WAITING_FOR_BONUS_SELECTION";
 
-  await showBonusOptions(bot, chatId);
+  await showBonusOptions(bot, chatId, checkUserExist);
 };
 
 /**
  * Fetch and present relevant bonuses for the selected payment_category_id
  */
-const showBonusOptions = async (bot, chatId) => {
+const showBonusOptions = async (bot, chatId, checkUserExist) => {
   try {
     // 1) Get the user's chosen payment_category_id from session
     const { payment_category_id, amount } = userDepositData[chatId];
@@ -160,7 +84,7 @@ const showBonusOptions = async (bot, chatId) => {
         chatId,
         "Tidak ada bonus yang relevan tersedia untuk metode pembayaran yang Anda pilih. Melanjutkan tanpa bonus..."
       );
-      return proceedAfterBonusSelection(bot, chatId);
+      return proceedAfterBonusSelection(bot, chatId, checkUserExist);
     }
 
     // 4) Fetch the main /bonuses list
@@ -183,7 +107,7 @@ const showBonusOptions = async (bot, chatId) => {
         chatId,
         "Tidak ada bonus yang relevan untuk pilihan Anda. Melanjutkan tanpa bonus..."
       );
-      return proceedAfterBonusSelection(bot, chatId);
+      return proceedAfterBonusSelection(bot, chatId, checkUserExist);
     }
 
     // 6) Build the inline keyboard for the matched bonuses
@@ -210,7 +134,7 @@ const showBonusOptions = async (bot, chatId) => {
       chatId,
       "Gagal mengambil data bonus. Melanjutkan tanpa bonus..."
     );
-    proceedAfterBonusSelection(bot, chatId);
+    proceedAfterBonusSelection(bot, chatId, checkUserExist);
   }
 };
 
