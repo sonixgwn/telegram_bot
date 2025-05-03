@@ -7,9 +7,9 @@ const {
 async function showMenu(chatId, password = null, start = false) {
   if (start) {
     const welcomeMessage = `
-    <b>Selamat Datang di “${brand}”, Telegram Casino.</b>
+    <b>Selamat Datang di Situs Resmi “${brand}” versi Telegram!</b>
 
-    Bermain Slot, Casino, Sepak Bola, dll Langsung di Telegram.`;
+    Bermain dengan aman dan nyaman langsung dari Telegram. Cobakan semua fitur dengan mudah.`;
     bot.sendMessage(chatId, welcomeMessage,
       {
           parse_mode: "HTML"
