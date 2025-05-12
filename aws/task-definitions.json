@@ -21,7 +21,7 @@
                 },
                 {
                     "name": "API_URL",
-                    "value": "https://api-prod.pwcplay.net"
+                    "value": "https://api.wewenangpartai.com/mspwc"
                 },
                 {
                     "name": "MASTER_CODE",
