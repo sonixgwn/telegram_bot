@@ -21,7 +21,7 @@
                 },
                 {
                     "name": "API_URL",
-                    "value": "https://api.wewenangpartai.com/mspwc"
+                    "value": "http://mspwc:5050"
                 },
                 {
                     "name": "MASTER_CODE",
