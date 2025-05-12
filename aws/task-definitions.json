@@ -21,7 +21,7 @@
                 },
                 {
                     "name": "API_URL",
-                    "value": "http://mspwc:5050"
+                    "value": "http://mspwc.production:5050"
                 },
                 {
                     "name": "MASTER_CODE",
