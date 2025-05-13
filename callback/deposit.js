@@ -28,7 +28,12 @@ const handleDepositSelection = async (bot, chatId, data) => {
     };    
     bot.sendMessage(
       chatId,
-      `Anda memilih Pembayaran via ${depositInfo.method}, Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):`
+      `Anda memilih Pembayaran via ${depositInfo.method}, Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):`,
+      {
+      reply_markup: {
+        force_reply: true,
+      },
+      }
     );
   } else {
     bot.sendMessage(
@@ -49,7 +54,11 @@ const handleDepositAmount = async (bot, chatId, text, checkUserExist) => {
     return;
   }
   if (isNaN(text)) {
-    bot.sendMessage(chatId, "Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):");
+    bot.sendMessage(chatId, "Silahkan masukan nominal Deposit Anda (Tanpa tanda baca (, .). Contoh : 100000):", {
+      reply_markup: {
+      force_reply: true,
+      },
+    });
     return;
   }
   const amount = parseFloat(text);

@@ -60,7 +60,11 @@ bot.on("message", async (msg) => {
     if (commandHandlers[text]) {
         await commandHandlers[text](chatId);
     } else {
-        console.log(`Unknown command: ${text}`);
+        if (!msg.reply_to_message && text && !text.startsWith("/")) {
+            await bot.sendMessage(chatId, "Mohon Maaf, Permintaan Anda tidak dapat diproses. Hubungi Livechat untuk bantuan lebih lanjut.");
+            await getSupportMarkup(chatId);
+            return;
+        }
     }
 
     // 3) Only call handleDepositAmount if we are expecting the user to enter an amount
