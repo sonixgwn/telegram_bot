@@ -124,11 +124,10 @@ const callbackHandlers = {
                 const startIndex = (parseInt(pagination) - 1) * 20;
                 const endIndex = startIndex + 20;
                 games = games.slice(startIndex, endIndex);
-
                 const gameButtons = games.map((game) => [
                     {
                         text: game.game_name,
-                        callback_data: `game_${game_provider}_${game_category}_${game.game_code}_${provider_type}_${game.game_provider}`,
+                        callback_data: `game_${game_provider}_${game_category}_${game.game_code}_${provider_type}_${game.game_provider}_${game.game_provider_code}`,
                     },
                 ]);
 
@@ -155,6 +154,7 @@ const callbackHandlers = {
             game_code,
             provider_type,
             provider_id,
+            vendor_code
         ] = data.split("_");
         const user = await checkUserExist(chatId);
 
@@ -213,11 +213,12 @@ const callbackHandlers = {
                 {
                     method: "game_launch",
                     chat_id: chatId,
-                    game_provider: provider_id.toUpperCase(),
+                    game_vendor: provider_id.toUpperCase(),
+                    game_provider: provider_type,
                     game_category,
                     extplayer: user.extplayer,
                     game_code,
-                    provider_type,
+                    provider_type: vendor_code,
                     portfolio: "SeamlessGame",
                 },
                 { headers: { "x-endpoint-secret": API_SECRET } }
@@ -252,7 +253,7 @@ const callbackHandlers = {
                                 [
                                     {
                                         text: "🔄 Relaunch Game",
-                                        callback_data: `game_${game_provider}_${game_category}_${game_code}_${provider_type}_${provider_id}`,
+                                        callback_data: `game_${game_provider}_${game_category}_${game_code}_${provider_type}_${provider_id}_${vendor_code}`,
                                     },
                                 ],
                             ],
