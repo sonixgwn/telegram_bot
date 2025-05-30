@@ -399,16 +399,6 @@ const callbackHandlers = {
                     provider_type: vendor_code,
                     portfolio,
                 },
-
-                // method: "game_launch",
-                // chat_id: chatId,
-                // game_vendor: provider_id.toUpperCase(),
-                // game_provider: provider_type,
-                // game_category,
-                // extplayer: user.extplayer,
-                // game_code,
-                // provider_type: vendor_code,
-                // portfolio: "SeamlessGame",
                 {
                     headers: {
                         "x-endpoint-secret": API_SECRET,
