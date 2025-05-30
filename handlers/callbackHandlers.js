@@ -35,7 +35,10 @@ const callbackHandlers = {
     deposit_: async (chatId, data) => {
         const user = await checkUserExist(chatId);
         if (!user) {
-            bot.sendMessage(chatId, "❌ User not found. Please register or log in first.");
+            bot.sendMessage(
+                chatId,
+                "❌ User not found. Please register or log in first."
+            );
             return;
         }
 
@@ -154,7 +157,7 @@ const callbackHandlers = {
             game_code,
             provider_type,
             provider_id,
-            vendor_code
+            vendor_code,
         ] = data.split("_");
         const user = await checkUserExist(chatId);
 
@@ -305,7 +308,14 @@ const callbackHandlers = {
                     const row = [];
                     row.push({
                         text: providers[i].game_name,
-                        callback_data: `categoryGame_${providers[i].game_code}_${providers[i].game_provider}_${provider_type}_${provider_type === "SB" && !providers[i].game_name.startsWith("SBO") ? "ThirdPartySportsBook" : portfolio}`,
+                        callback_data: `categoryGame_${
+                            providers[i].game_code
+                        }_${providers[i].game_provider}_${provider_type}_${
+                            provider_type === "SB" &&
+                            !providers[i].game_name.startsWith("SBO")
+                                ? "ThirdPartySportsBook"
+                                : portfolio
+                        }_${providers[i].game_provider_code}`,
                     });
                     if (providers[i + 1]) {
                         row.push({
@@ -314,7 +324,12 @@ const callbackHandlers = {
                                 providers[i + 1].game_code
                             }_${
                                 providers[i + 1].game_provider
-                            }_${provider_type}_${provider_type === "SB" && !providers[i + 1].game_name.startsWith("SBO") ? "ThirdPartySportsBook" : portfolio}`,
+                            }_${provider_type}_${
+                                provider_type === "SB" &&
+                                !providers[i + 1].game_name.startsWith("SBO")
+                                    ? "ThirdPartySportsBook"
+                                    : portfolio
+                            }_${providers[i + 1].game_provider_code}`,
                         });
                     }
                     providerButtons.push(row);
@@ -341,6 +356,7 @@ const callbackHandlers = {
         const game_provider = data.split("_")[2];
         const provider_type = data.split("_")[3];
         const portfolio = data.split("_")[4];
+        const vendor_code = data.split("_")[5];
         const user = await checkUserExist(chatId);
 
         if (!user) {
@@ -372,16 +388,27 @@ const callbackHandlers = {
                 {
                     method: "game_launch",
                     chat_id: chatId,
-                    game_provider:
+                    game_vendor:
                         game_provider === "sbosports"
                             ? game_code
-                            : game_provider,
+                            : game_provider.toUpperCase(),
+                    game_provider: provider_type,
                     game_category: provider_type,
                     extplayer: user.extplayer,
                     game_code,
-                    provider_type,
+                    provider_type: vendor_code,
                     portfolio,
                 },
+
+                // method: "game_launch",
+                // chat_id: chatId,
+                // game_vendor: provider_id.toUpperCase(),
+                // game_provider: provider_type,
+                // game_category,
+                // extplayer: user.extplayer,
+                // game_code,
+                // provider_type: vendor_code,
+                // portfolio: "SeamlessGame",
                 {
                     headers: {
                         "x-endpoint-secret": API_SECRET,
